@@ -487,6 +487,42 @@
                                         </tr>                                        
                                     </table>
                                 </Card>                           
+                                <Card  title="Code execution" :is_subcard="true" class="pb-2  m-2">
+                                    <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <tr>
+                                        <td style="min-width: 200px;">
+                                            <label for="turn_on_code_execution" class="text-sm font-bold" style="margin-right: 1rem;">turn on code execution:</label>
+                                        </td>
+                                        <td style="width: 100%;">
+                                            <input
+                                            type="checkbox"
+                                            id="turn_on_code_execution"
+                                            required
+                                            v-model="configFile.turn_on_code_execution"
+                                            @change="settingsChanged=true"
+                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                            >
+                                        </td>
+                                        </tr>
+                                        
+                                        <tr>
+                                        <td style="min-width: 200px;">
+                                            <label for="turn_on_code_validation" class="text-sm font-bold" style="margin-right: 1rem;">turn on code validation:</label>
+                                        </td>
+
+                                        <td style="width: 100%;">
+                                            <input
+                                            type="checkbox"
+                                            id="turn_on_code_validation"
+                                            required
+                                            v-model="configFile.turn_on_code_validation"
+                                            @change="settingsChanged=true"
+                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                            >
+                                        </td>
+                                        </tr>                                        
+                                    </table>
+                                </Card>                                    
                                 <Card title="Data Vectorization" :is_subcard="true" class="pb-2  m-2">
                                     <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                         <tr>
@@ -1125,6 +1161,21 @@
                                             id="port"
                                             required
                                             v-model="configFile.port"
+                                            @change="settingsChanged=true"
+                                            class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                            >
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td style="min-width: 200px;">
+                                            <label for="db_path" class="text-sm font-bold" style="margin-right: 1rem;">Activate headless server mode (deactivates all code exectuion to protect the PC from attacks):</label>
+                                        </td>
+                                        <td style="width: 100%;">
+                                            <input
+                                            type="checkbox"
+                                            id="headless_server_mode"
+                                            required
+                                            v-model="configFile.headless_server_mode"
                                             @change="settingsChanged=true"
                                             class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
                                             >
@@ -2815,6 +2866,7 @@ export default {
             axios.post('/upload_avatar', formData)
                 .then(response => {
                     console.log("Avatar uploaded successfully")
+                    
                     this.$store.state.toast.showToast("Avatar uploaded successfully!", 4, true)
                     // Assuming the server responds with the file name after successful upload
                     const fileName = response.data.fileName;

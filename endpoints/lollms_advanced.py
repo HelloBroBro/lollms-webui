@@ -9,7 +9,7 @@ description:
 """
 from fastapi import APIRouter, Request
 from lollms_webui import LOLLMSWebUI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.responses import StreamingResponse
 from lollms.types import MSG_TYPE
 from lollms.main_config import BaseConfig
@@ -23,6 +23,17 @@ from fastapi import FastAPI, UploadFile, File
 import shutil
 import os
 import platform
+import string
+import re
+import subprocess   
+from typing import Optional
+
+# Regular expression pattern to validate file paths
+FILE_PATH_REGEX = r'^[a-zA-Z0-9_\-\\\/]+$'
+
+# Function to validate file paths using the regex pattern
+def validate_file_path(path):
+    return re.match(FILE_PATH_REGEX, path)
 
 from utilities.execution_engines.python_execution_engine import execute_python
 from utilities.execution_engines.latex_execution_engine import execute_latex
@@ -40,6 +51,25 @@ from utilities.execution_engines.graphviz_execution_engine import execute_graphv
 router = APIRouter()
 lollmsElfServer:LOLLMSWebUI = LOLLMSWebUI.get_instance()
 
+
+def show_yes_no_dialog(title, text):
+    import tkinter as tk
+    from tkinter import messagebox
+    # Create a new Tkinter root window and hide it
+    root = tk.Tk()
+    root.withdraw()
+
+    # Make the window appear on top
+    root.attributes('-topmost', True)
+    
+    # Show the dialog box
+    result = messagebox.askyesno(title, text)
+
+    # Destroy the root window
+    root.destroy()
+
+    return result
+
 @router.post("/execute_code")
 async def execute_code(request: Request):
     """
@@ -49,11 +79,25 @@ async def execute_code(request: Request):
     :return: A JSON response with the status of the operation.
     """
 
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Code execution is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Code execution is blocked when the server is exposed outside for very obvipous reasons!"}
+
+    if not lollmsElfServer.config.turn_on_code_execution:
+        return {"status":False,"error":"Code execution is blocked by the configuration!"}
+
+    if lollmsElfServer.config.turn_on_code_validation:
+        if not show_yes_no_dialog("Validation","Do you validate the execution of the code?"):
+            return {"status":False,"error":"User refused the execution!"}
+
+
     try:
         data = (await request.json())
         code = data["code"]
-        discussion_id = data.get("discussion_id","unknown_discussion")
-        message_id = data.get("message_id","unknown_message")
+        discussion_id = int(data.get("discussion_id","unknown_discussion"))
+        message_id = int(data.get("message_id","unknown_message"))
         language = data.get("language","python")
         
 
@@ -87,46 +131,22 @@ async def execute_code(request: Request):
             ASCIIColors.info("Executing graphviz code:")
             ASCIIColors.yellow(code)
             return execute_graphviz(code, discussion_id, message_id)
-        return {"output": "Unsupported language", "execution_time": 0}
+        return {"status": False, "error": "Unsupported language", "execution_time": 0}
     except Exception as ex:
         trace_exception(ex)
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
     
 
-@router.post("/open_code_folder")
-async def open_code_folder(request: Request):
-    """
-    Opens code folder.
 
-    :param request: The HTTP request object.
-    :return: A JSON response with the status of the operation.
-    """
-
-    try:
-        data = (await request.json())
-        discussion_id = data.get("discussion_id","unknown_discussion")
-
-        ASCIIColors.info("Opening folder:")
-        # Create a temporary file.
-        root_folder = lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{discussion_id}"
-        root_folder.mkdir(parents=True,exist_ok=True)
-        if platform.system() == 'Windows':
-            os.startfile(str(root_folder))
-        elif platform.system() == 'Linux':
-            os.system('xdg-open ' + str(root_folder))
-        elif platform.system() == 'Darwin':
-            os.system('open ' + str(root_folder))
-        return {"output": "OK", "execution_time": 0}
-    except Exception as ex:
-        trace_exception(ex)
-        lollmsElfServer.error(ex)
-        return {"status":False,"error":str(ex)}
-
-
+class OpenCodeFolderInVsCodeRequestModel(BaseModel):
+    discussion_id: Optional[int] = Field(None, gt=0)
+    message_id: Optional[int] = Field(None, gt=0)
+    code: Optional[str]
+    folder_path: Optional[str]
 
 @router.post("/open_code_folder_in_vs_code")
-async def open_code_folder_in_vs_code(request: Request):
+async def open_code_folder_in_vs_code(request: OpenCodeFolderInVsCodeRequestModel):
     """
     Opens code folder.
 
@@ -135,131 +155,149 @@ async def open_code_folder_in_vs_code(request: Request):
     """
 
     try:
-        if "discussion_id" in data:        
-            data = (await request.json())
-            code = data["code"]
-            discussion_id = data.get("discussion_id","unknown_discussion")
-            message_id = data.get("message_id","unknown_message")
-            language = data.get("language","python")
-
+        if request.discussion_id:        
             ASCIIColors.info("Opening folder:")
-            # Create a temporary file.
-            root_folder = lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{discussion_id}"
+            root_folder = lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{request.discussion_id}"
             root_folder.mkdir(parents=True,exist_ok=True)
-            tmp_file = root_folder/f"ai_code_{message_id}.py"
+            tmp_file = root_folder/f"ai_code_{request.message_id}.py"
             with open(tmp_file,"w") as f:
-                f.write(code)
+                f.write(request.code)
             
-            os.system('code ' + str(root_folder))
-        elif "folder_path" in data:
+            if os.path.isdir(root_folder):
+                subprocess.run(['code', root_folder], check=True)
+        elif request.folder_path:
             ASCIIColors.info("Opening folder:")
-            # Create a temporary file.
-            root_folder = data["folder_path"]
+            root_folder = request.folder_path
             root_folder.mkdir(parents=True,exist_ok=True)
-            os.system('code ' + str(root_folder))
 
-        return {"output": "OK", "execution_time": 0}
+            if os.path.isdir(root_folder):
+                subprocess.run(['code', root_folder], check=True)
+
+        return {"status": True, "execution_time": 0}
     except Exception as ex:
         trace_exception(ex)
         lollmsElfServer.error(ex)
-        return {"status":False,"error":str(ex)}
+        return {"status":False,"error":"An error occurred during processing."}
     
+class FilePath(BaseModel):
+    path: Optional[str] = Field(None, max_length=500)
+
 @router.post("/open_file")
-async def open_file(request: Request):
+async def open_file(file_path: FilePath):
     """
     Opens code in vs code.
 
-    :param request: The HTTP request object.
+    :param file_path: The file path object.
     :return: A JSON response with the status of the operation.
     """
 
     try:
-        data = (await request.json())
-        path = data.get('path')
-        os.system("start "+path)
-        return {"output": "OK", "execution_time": 0}
+        # Validate the 'path' parameter
+        path = file_path.path
+        if not validate_file_path(path):
+            return {"status":False,"error":"Invalid file path"}
+        
+        # Sanitize the 'path' parameter
+        path = os.path.realpath(path)
+        
+        # Use subprocess.Popen to safely open the file
+        subprocess.Popen(["start", path], shell=True)
+        
+        return {"status": True, "execution_time": 0}
+    
     except Exception as ex:
         trace_exception(ex)
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
 
+class VSCodeData(BaseModel):
+    discussion_id: Optional[int] = Field(None, ge=0)
+    message_id: Optional[int] = Field(None, ge=0)
+    code: str = Field(...)
 
 @router.post("/open_code_in_vs_code")
-async def open_code_in_vs_code(request: Request):
+async def open_code_in_vs_code(vs_code_data: VSCodeData):
     """
     Opens code in vs code.
 
-    :param request: The HTTP request object.
+    :param vs_code_data: The data object.
     :return: A JSON response with the status of the operation.
     """
 
     try:
-        data = (await request.json())
-        discussion_id = data.get("discussion_id","unknown_discussion")
-        message_id = data.get("message_id","")
-        code = data["code"]
-        discussion_id = data.get("discussion_id","unknown_discussion")
-        message_id = data.get("message_id","unknown_message")
-        language = data.get("language","python")
+        discussion_id = vs_code_data.discussion_id
+        message_id = vs_code_data.message_id
+        code = vs_code_data.code
 
         ASCIIColors.info("Opening folder:")
         # Create a temporary file.
-        root_folder = lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{discussion_id}"/f"{message_id}.py"
+        root_folder = Path(os.path.realpath(lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{discussion_id}"/f"{message_id}.py"))
         root_folder.mkdir(parents=True,exist_ok=True)
         tmp_file = root_folder/f"ai_code_{message_id}.py"
         with open(tmp_file,"w") as f:
             f.write(code)
-        os.system('code ' + str(root_folder))
-        return {"output": "OK", "execution_time": 0}
+        
+        # Use subprocess.Popen to safely open the file
+        subprocess.Popen(["code", str(root_folder)], shell=True)
+        
+        return {"status": True, "execution_time": 0}
     except Exception as ex:
         trace_exception(ex)
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
     
+class FolderRequest(BaseModel):
+    discussion_id: Optional[int] = Field(None, title="The discussion ID")
+    folder_path: Optional[str] = Field(None, title="The folder path")
 
 @router.post("/open_code_folder")
-async def open_code_folder(request: Request):
+async def open_code_folder(request: FolderRequest):
     """
     Opens code folder.
 
     :param request: The HTTP request object.
     :return: A JSON response with the status of the operation.
     """
-
+    
     try:
-        data = (await request.json())
-        if "discussion_id" in data:
-            discussion_id = data.get("discussion_id","unknown_discussion")
+        if request.discussion_id:
+            discussion_id = request.discussion_id
 
             ASCIIColors.info("Opening folder:")
             # Create a temporary file.
-            root_folder = lollmsElfServer.lollms_paths.personal_outputs_path/"discussions"/f"d_{discussion_id}"
-            root_folder.mkdir(parents=True,exist_ok=True)
+            root_folder = lollmsElfServer.lollms_paths.personal_outputs_path / "discussions" / f"d_{discussion_id}"
+            root_folder.mkdir(parents=True, exist_ok=True)
             if platform.system() == 'Windows':
-                os.startfile(str(root_folder))
+                subprocess.run(['start', str(root_folder)], check=True, shell=True)
             elif platform.system() == 'Linux':
-                os.system('xdg-open ' + str(root_folder))
+                subprocess.run(['xdg-open', str(root_folder)], check=True)
             elif platform.system() == 'Darwin':
-                os.system('open ' + str(root_folder))
-            return {"output": "OK", "execution_time": 0}
-        elif "folder_path" in data:
+                subprocess.run(['open', str(root_folder)], check=True)
+            return {"status": True, "execution_time": 0}
+        elif request.folder_path:
+            folder_path = os.path.realpath(request.folder_path)
+            # Verify that this is a file and not an executable
+            root_folder = Path(folder_path)
+            is_valid_folder_path = root_folder.is_dir()
+
+            if not is_valid_folder_path:
+                return {"status":False, "error":"Invalid folder path"}
+
             ASCIIColors.info("Opening folder:")
             # Create a temporary file.
-            root_folder = data["folder_path"]
-            root_folder.mkdir(parents=True,exist_ok=True)
+            root_folder.mkdir(parents=True, exist_ok=True)
             if platform.system() == 'Windows':
-                os.startfile(str(root_folder))
+                subprocess.run(['start', str(root_folder)], check=True, shell=True)
             elif platform.system() == 'Linux':
-                os.system('xdg-open ' + str(root_folder))
+                subprocess.run(['xdg-open', str(root_folder)], check=True)
             elif platform.system() == 'Darwin':
-                os.system('open ' + str(root_folder))
-            return {"output": "OK", "execution_time": 0}
+                subprocess.run(['open', str(root_folder)], check=True)
+            return {"status": True, "execution_time": 0}
 
     except Exception as ex:
         trace_exception(ex)
         lollmsElfServer.error(ex)
-        return {"status":False,"error":str(ex)}
-    
+        return {"status": False, "error": "An error occurred while processing the request"}
 
 @router.get("/start_recording")
 def start_recording():
