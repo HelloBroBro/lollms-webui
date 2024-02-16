@@ -70,8 +70,14 @@ def show_yes_no_dialog(title, text):
 
     return result
 
+class CodeRequest(BaseModel):
+    code: str = Field(..., description="Code to be executed")
+    discussion_id: int = Field(..., description="Discussion ID")
+    message_id: int = Field(..., description="Message ID")
+    language: str = Field(..., description="Programming language of the code")
+
 @router.post("/execute_code")
-async def execute_code(request: Request):
+async def execute_code(request: CodeRequest):
     """
     Executes Python code and returns the output.
 
@@ -83,7 +89,7 @@ async def execute_code(request: Request):
         return {"status":False,"error":"Code execution is blocked when in headless mode for obvious security reasons!"}
 
     if lollmsElfServer.config.host=="0.0.0.0":
-        return {"status":False,"error":"Code execution is blocked when the server is exposed outside for very obvipous reasons!"}
+        return {"status":False,"error":"Code execution is blocked when the server is exposed outside for very obvious reasons!"}
 
     if not lollmsElfServer.config.turn_on_code_execution:
         return {"status":False,"error":"Code execution is blocked by the configuration!"}
@@ -92,15 +98,11 @@ async def execute_code(request: Request):
         if not show_yes_no_dialog("Validation","Do you validate the execution of the code?"):
             return {"status":False,"error":"User refused the execution!"}
 
-
     try:
-        data = (await request.json())
-        code = data["code"]
-        discussion_id = int(data.get("discussion_id","unknown_discussion"))
-        message_id = int(data.get("message_id","unknown_message"))
-        language = data.get("language","python")
-        
-
+        code = request.code
+        discussion_id = request.discussion_id
+        message_id = request.message_id
+        language = request.language
 
         if language=="python":
             ASCIIColors.info("Executing python code:")
@@ -114,7 +116,7 @@ async def execute_code(request: Request):
             ASCIIColors.info("Executing javascript code:")
             ASCIIColors.yellow(code)
             return execute_html(code, discussion_id, message_id)
-        
+
         elif language=="latex":
             ASCIIColors.info("Executing latex code:")
             ASCIIColors.yellow(code)
@@ -153,6 +155,11 @@ async def open_code_folder_in_vs_code(request: OpenCodeFolderInVsCodeRequestMode
     :param request: The HTTP request object.
     :return: A JSON response with the status of the operation.
     """
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Open code folder in vscode is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Open code folder in vscode is blocked when the server is exposed outside for very obvious reasons!"}
 
     try:
         if request.discussion_id:        
@@ -190,6 +197,11 @@ async def open_file(file_path: FilePath):
     :param file_path: The file path object.
     :return: A JSON response with the status of the operation.
     """
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Open file is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Open file is blocked when the server is exposed outside for very obvious reasons!"}
 
     try:
         # Validate the 'path' parameter
@@ -201,7 +213,7 @@ async def open_file(file_path: FilePath):
         path = os.path.realpath(path)
         
         # Use subprocess.Popen to safely open the file
-        subprocess.Popen(["start", path], shell=True)
+        subprocess.Popen(["start", path])
         
         return {"status": True, "execution_time": 0}
     
@@ -223,6 +235,11 @@ async def open_code_in_vs_code(vs_code_data: VSCodeData):
     :param vs_code_data: The data object.
     :return: A JSON response with the status of the operation.
     """
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Open code in vs code is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Open code in vs code is blocked when the server is exposed outside for very obvious reasons!"}
 
     try:
         discussion_id = vs_code_data.discussion_id
@@ -238,7 +255,7 @@ async def open_code_in_vs_code(vs_code_data: VSCodeData):
             f.write(code)
         
         # Use subprocess.Popen to safely open the file
-        subprocess.Popen(["code", str(root_folder)], shell=True)
+        subprocess.Popen(["code", str(root_folder)])
         
         return {"status": True, "execution_time": 0}
     except Exception as ex:
@@ -258,6 +275,11 @@ async def open_code_folder(request: FolderRequest):
     :param request: The HTTP request object.
     :return: A JSON response with the status of the operation.
     """
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Open code folder is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Open code folder is blocked when the server is exposed outside for very obvious reasons!"}
     
     try:
         if request.discussion_id:
@@ -268,7 +290,7 @@ async def open_code_folder(request: FolderRequest):
             root_folder = lollmsElfServer.lollms_paths.personal_outputs_path / "discussions" / f"d_{discussion_id}"
             root_folder.mkdir(parents=True, exist_ok=True)
             if platform.system() == 'Windows':
-                subprocess.run(['start', str(root_folder)], check=True, shell=True)
+                subprocess.run(['start', str(root_folder)], check=True)
             elif platform.system() == 'Linux':
                 subprocess.run(['xdg-open', str(root_folder)], check=True)
             elif platform.system() == 'Darwin':
@@ -287,7 +309,7 @@ async def open_code_folder(request: FolderRequest):
             # Create a temporary file.
             root_folder.mkdir(parents=True, exist_ok=True)
             if platform.system() == 'Windows':
-                subprocess.run(['start', str(root_folder)], check=True, shell=True)
+                subprocess.run(['start', str(root_folder)], check=True)
             elif platform.system() == 'Linux':
                 subprocess.run(['xdg-open', str(root_folder)], check=True)
             elif platform.system() == 'Darwin':
@@ -301,6 +323,12 @@ async def open_code_folder(request: FolderRequest):
 
 @router.get("/start_recording")
 def start_recording():
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Start recording is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Start recording is blocked when the server is exposed outside for very obvious reasons!"}
+
     lollmsElfServer.info("Starting audio capture")
     try:
         from lollms.media import AudioRecorder
@@ -315,6 +343,12 @@ def start_recording():
 
 @router.get("/stop_recording")
 def stop_recording():
+    if lollmsElfServer.config.headless_server_mode:
+        return {"status":False,"error":"Stop recording is blocked when in headless mode for obvious security reasons!"}
+
+    if lollmsElfServer.config.host=="0.0.0.0":
+        return {"status":False,"error":"Stop recording is blocked when the server is exposed outside for very obvious reasons!"}
+
     lollmsElfServer.info("Stopping audio capture")
     text = lollmsElfServer.audio_cap.stop_recording()
     return text
