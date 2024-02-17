@@ -17,6 +17,17 @@
             </button>
             <button
                 type="button"
+                title="Start audio to audio"
+                @click="startRecordingAndTranscribing"
+                :class="{ 'text-green-500': isLesteningToVoice }"
+                class="w-6 hover:text-secondary duration-75 active:scale-90 cursor-pointer text-red-500"
+            >   
+              <img v-if="!pending" :src="is_deaf_transcribing?deaf_on:deaf_off" height="25">
+              <img v-if="pending" :src="loading_icon" height="25">
+            </button>            
+
+            <button
+                type="button"
                 @click="startRecording"
                 :class="{ 'text-green-500': isLesteningToVoice }"
                 class="w-6 hover:text-secondary duration-75 active:scale-90 cursor-pointer text-red-500"
@@ -237,6 +248,11 @@ import html5_block from '@/assets/html5_block.png';
 import LaTeX_block from '@/assets/LaTeX_block.png';
 import bash_block from '@/assets/bash_block.png';
 
+
+
+import deaf_on from '@/assets/deaf_on.svg';
+import deaf_off from '@/assets/deaf_off.svg';
+
 import rec_on from '@/assets/rec_on.svg';
 import rec_off from '@/assets/rec_off.svg';
 import loading_icon from '@/assets/loading.svg';
@@ -391,6 +407,7 @@ export default {
     return {
       pending:false,
       is_recording:false,
+      is_deaf_transcribing:false,
       
       cpp_block:cpp_block,
       html5_block:html5_block,
@@ -401,6 +418,9 @@ export default {
       python_block:python_block,
       bash_block:bash_block,
 
+      deaf_off:deaf_off,
+      deaf_on:deaf_on,
+      
       rec_off:rec_off,
       rec_on:rec_on,
       loading_icon:loading_icon,
@@ -620,7 +640,8 @@ export default {
       // This event will be triggered when the voices are loaded
       this.voices = this.speechSynthesis.getVoices();
       },
-      read(){
+    read(){
+        console.log("READING...")
         this.isSynthesizingVoice=true
         let ss =this.$refs.mdTextarea.selectionStart
         let se =this.$refs.mdTextarea.selectionEnd
@@ -845,8 +866,6 @@ export default {
           this.is_recording = true;
           this.pending = false;
           console.log(response.data)
-          this.presets=response.data
-          this.selectedPreset = this.presets[0]
         }).catch(ex=>{
           this.$refs.toast.showToast(`Error: ${ex}`,4,false)
         });
@@ -856,11 +875,34 @@ export default {
           this.is_recording = false;
           this.pending = false;
           console.log(response)
-          this.text += response.data
+          this.text += response.data.text
 
           console.log(response.data)
           this.presets=response.data
           this.selectedPreset = this.presets[0]
+        }).catch(ex=>{
+          this.$refs.toast.showToast(`Error: ${ex}`,4,false)
+        });
+
+      }
+
+    },
+    startRecordingAndTranscribing(){
+      this.pending = true;
+      if(!this.is_deaf_transcribing){
+        axios.get('/start_recording').then(response => {
+          this.is_deaf_transcribing = true;
+          this.pending = false;
+        }).catch(ex=>{
+          this.$refs.toast.showToast(`Error: ${ex}`,4,false)
+        });
+      }
+      else{
+        axios.get('/stop_recording').then(response => {
+          this.is_deaf_transcribing = false;
+          this.pending = false;
+          this.text = response.data.text
+          this.read()
         }).catch(ex=>{
           this.$refs.toast.showToast(`Error: ${ex}`,4,false)
         });

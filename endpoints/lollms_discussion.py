@@ -15,6 +15,7 @@ from lollms.types import MSG_TYPE
 from lollms.utilities import detect_antiprompt, remove_text_from_string, trace_exception
 from ascii_colors import ASCIIColors
 from api.db import DiscussionsDB, Discussion
+from typing import List
 
 from safe_store.text_vectorizer import TextVectorizer, VectorizationMethod, VisualizationMethod
 import tqdm
@@ -59,11 +60,14 @@ async def list_databases():
 
 @router.post("/select_database")
 def select_database(data:DatabaseSelectionParameters):
+    if(".." in data.name):
+        raise "Detected an attempt of path traversal. Are you kidding me?"
+    
     if not data.name.endswith(".db"):
         data.name += ".db"
     print(f'Selecting database {data.name}')
     # Create database object
-    lollmsElfServer.db = DiscussionsDB(lollmsElfServer.lollms_paths.personal_databases_path/data.name)
+    lollmsElfServer.db = DiscussionsDB((lollmsElfServer.lollms_paths.personal_databases_path/data.name).resolve())
     ASCIIColors.info("Checking discussions database... ",end="")
     lollmsElfServer.db.create_tables()
     lollmsElfServer.db.add_missing_columns()
@@ -114,20 +118,17 @@ def export_discussion():
     return {"discussion_text":lollmsElfServer.get_discussion_to()}
 
 
+class DiscussionEditTitle(BaseModel):
+    client_id: str
+    title: str
+    id: int
+
 @router.post("/edit_title")
-async def edit_title(request: Request):
-    """
-    Executes Python code and returns the output.
-
-    :param request: The HTTP request object.
-    :return: A JSON response with the status of the operation.
-    """
-
+async def edit_title(discussion_edit_title: DiscussionEditTitle):
     try:
-        data = (await request.json())
-        client_id           = data.get("client_id")
-        title               = data.get("title")
-        discussion_id       = data.get("id")
+        client_id = discussion_edit_title.client_id
+        title = discussion_edit_title.title
+        discussion_id = discussion_edit_title.id
         lollmsElfServer.connections[client_id]["current_discussion"] = Discussion(discussion_id, lollmsElfServer.db)
         lollmsElfServer.connections[client_id]["current_discussion"].rename(title)
         return {'status':True}
@@ -135,21 +136,15 @@ async def edit_title(request: Request):
         trace_exception(ex)
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
-        
+
+class DiscussionTitle(BaseModel):
+    id: int
+    
 @router.post("/make_title")
-async def make_title(request: Request):
-    """
-    Executes Python code and returns the output.
-
-    :param request: The HTTP request object.
-    :return: A JSON response with the status of the operation.
-    """
-
+async def make_title(discussion_title: DiscussionTitle):
     try:
-        data = (await request.json())
-
         ASCIIColors.info("Making title")
-        discussion_id       = data.get("id")
+        discussion_id = discussion_title.id
         discussion = Discussion(discussion_id, lollmsElfServer.db)
         title = lollmsElfServer.make_discussion_title(discussion)
         discussion.rename(title)
@@ -159,13 +154,19 @@ async def make_title(request: Request):
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
     
+    
 @router.get("/export")
 def export():
     return lollmsElfServer.db.export_to_json()
 
 
+
+class DiscussionDelete(BaseModel):
+    client_id: str
+    id: int
+
 @router.post("/delete_discussion")
-async def delete_discussion(request: Request):
+async def delete_discussion(discussion: DiscussionDelete):
     """
     Executes Python code and returns the output.
 
@@ -174,10 +175,9 @@ async def delete_discussion(request: Request):
     """
 
     try:
-        data = (await request.json())
 
-        client_id           = data.get("client_id")
-        discussion_id       = data.get("id")
+        client_id           = discussion.client_id
+        discussion_id       = discussion.id
         lollmsElfServer.connections[client_id]["current_discussion"] = Discussion(discussion_id, lollmsElfServer.db)
         lollmsElfServer.connections[client_id]["current_discussion"].delete_discussion()
         lollmsElfServer.connections[client_id]["current_discussion"] = None
@@ -189,20 +189,15 @@ async def delete_discussion(request: Request):
     
     
 # ----------------------------- import/export --------------------
+class DiscussionExport(BaseModel):
+    discussion_ids: List[int]
+    export_format: str
 
 @router.post("/export_multiple_discussions")
-async def export_multiple_discussions(request: Request):
-    """
-    Opens code in vs code.
-
-    :param request: The HTTP request object.
-    :return: A JSON response with the status of the operation.
-    """
-
+async def export_multiple_discussions(discussion_export: DiscussionExport):
     try:
-        data = (await request.json())
-        discussion_ids = data["discussion_ids"]
-        export_format = data["export_format"]
+        discussion_ids = discussion_export.discussion_ids
+        export_format = discussion_export.export_format
 
         if export_format=="json":
             discussions = lollmsElfServer.db.export_discussions_to_json(discussion_ids)
@@ -215,18 +210,19 @@ async def export_multiple_discussions(request: Request):
         trace_exception(ex)
         lollmsElfServer.error(ex)
         return {"status":False,"error":str(ex)}
-    
+
+
+class Discussion(BaseModel):
+    id: int
+    content: str
+
+class DiscussionImport(BaseModel):
+    jArray: List[Discussion]
+
 @router.post("/import_multiple_discussions")
-async def import_multiple_discussions(request: Request):
-    """
-    Opens code in vs code.
-
-    :param request: The HTTP request object.
-    :return: A JSON response with the status of the operation.
-    """
-
+async def import_multiple_discussions(discussion_import: DiscussionImport):
     try:
-        discussions = (await request.json())["jArray"]
+        discussions = discussion_import.jArray
         lollmsElfServer.db.import_from_json(discussions)
         return discussions
     except Exception as ex:
