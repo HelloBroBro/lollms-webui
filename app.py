@@ -28,6 +28,19 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 from fastapi.encoders import jsonable_encoder
+import socket
+import psutil
+
+def get_ip_addresses():
+    hostname = socket.gethostname()    
+    ip_addresses = [socket.gethostbyname(hostname)]
+
+    for interface_name, interface_addresses in psutil.net_if_addrs().items():
+        for address in interface_addresses:
+            if str(address.family) == 'AddressFamily.AF_INET':
+                ip_addresses.append(address.address)
+
+    return ip_addresses
 
 app = FastAPI(title="LoLLMS", description="This is the LoLLMS-Webui API documentation")
 
@@ -64,6 +77,12 @@ if __name__ == "__main__":
         is_https = False        
 
     # Create a Socket.IO server
+    if config["host"]!="localhost":
+        if config["host"]!="0.0.0.0":
+            config.allowed_origins += config["host"]
+        else:
+            config.allowed_origins += get_ip_addresses()
+
     sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=config.allowed_origins+[f"https://localhost:{config['port']}" if is_https else f"http://localhost:{config['port']}"], ping_timeout=1200, ping_interval=30)  # Enable CORS for selected origins
 
     LOLLMSWebUI.build_instance(config=config, lollms_paths=lollms_paths, args=args, sio=sio)
@@ -90,7 +109,7 @@ if __name__ == "__main__":
     from lollms.server.endpoints.lollms_motion_ctrl import router as lollms_motion_ctrl
 
     from endpoints.lollms_webui_infos import router as lollms_webui_infos_router
-    from endpoints.lollms_discussion import router as lollms_discussion_router
+    from lollms.server.endpoints.lollms_discussion import router as lollms_discussion_router
     from endpoints.lollms_message import router as lollms_message_router
     from endpoints.lollms_advanced import router as lollms_advanced_router
     from endpoints.chat_bar import router as chat_bar_router
