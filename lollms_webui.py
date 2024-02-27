@@ -195,7 +195,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
         ASCIIColors.success("ok")
 
         # prepare vectorization
-        if self.config.data_vectorization_activate and self.config.activate_ltm:
+        if self.config.data_vectorization_activate and self.config.activate_skills_lib:
             try:
                 ASCIIColors.yellow("Loading long term memory")
                 folder = self.lollms_paths.personal_discussions_path/"vectorized_dbs"
@@ -978,7 +978,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
             ASCIIColors.info("Running workflow")
             try:
                 self.personality.callback = callback
-                self.personality.processor.run_workflow( prompt, full_prompt, callback, context_details)
+                self.personality.processor.run_workflow(prompt, full_prompt, callback, context_details)
             except Exception as ex:
                 trace_exception(ex)
                 # Catch the exception and get the traceback as a list of strings
