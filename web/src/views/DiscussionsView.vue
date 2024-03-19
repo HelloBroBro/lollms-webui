@@ -106,7 +106,7 @@
                         class=" w-6 text-blue-400 hover:text-secondary duration-75 active:scale-90">
                         <img :src="inactive_skills">
                     </button>
-                    <button v-if="!loading && $store.state.config.activate_skills_lib" type="button" @click.stop="showSkillsLib" title="Skills database is deactivated"
+                    <button v-if="!loading" type="button" @click.stop="showSkillsLib" title="Skills database is deactivated"
                         class=" w-6 text-blue-400 hover:text-secondary duration-75 active:scale-90">
                         <img :src="skillsRegistry">
                     </button>
@@ -297,7 +297,7 @@
         <p class="text-2xl animate-pulse mt-2 text-white">{{ loading_infos }} ...</p>
     </div>
     <InputBox prompt-text="Enter the url to the page to use as discussion support" @ok="addWebpage" ref="web_url_input_box"></InputBox>   
-    <SkillsLibraryViewer ref="skills_lib"></SkillsLibraryViewer>
+    <SkillsLibraryViewer ref="skills_lib" ></SkillsLibraryViewer>
 </template>
 
 
@@ -379,6 +379,7 @@ import memory_icon from "../assets/memory_icon.svg"
 import active_skills from "../assets/active.svg"
 import inactive_skills from "../assets/inactive.svg"
 import skillsRegistry from "../assets/registry.svg"
+import { mapState } from 'vuex';
 
 export default {
     
@@ -580,7 +581,6 @@ export default {
         async toggleSkillsLib(){
             this.$store.state.config.activate_skills_lib =! this.$store.state.config.activate_skills_lib;
             await this.applyConfiguration();
-            socket.emit('upgrade_vectorization');
         },
         async showSkillsLib(){
             this.$refs.skills_lib.showSkillsLibrary()
@@ -1947,6 +1947,15 @@ export default {
         },
     },
     async created() {
+        const response = await axios.get('/get_versionID');
+        const serverVersionId = response.data.versionId;
+        if (this.versionId !== serverVersionId) {
+            // Update the store value
+            this.$store.commit('updateVersionId', serverVersionId);
+            
+            // Force a page refresh
+            window.location.reload(true);
+        }
         this.$nextTick(() => {
             feather.replace();
         });           
@@ -2119,6 +2128,9 @@ export default {
         
     },
     computed: { 
+        ...mapState({
+            versionId: state => state.versionId,
+        }),
         progress_visibility: {
             get(){
                 return self.progress_visibility_val;
