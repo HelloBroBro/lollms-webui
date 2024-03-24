@@ -102,7 +102,6 @@
 
                             <div class="flex gap-2 items-center ">
                                 <div>
-
                                     <div v-if="vramUsage&&vramUsage.gpus && vramUsage.gpus.length == 1">
                                         <div class="flex gap-2 items-center " v-for="item in vramUsage.gpus">
                                             <!-- GPU IMAGE  -->
@@ -4322,9 +4321,8 @@ export default {
             return res
         },
         applyConfiguration() {
-
             this.isLoading = true;
-            axios.post('/apply_settings', {"config":this.configFile}).then((res) => {
+            axios.post('/apply_settings', {"client_id":this.$store.state.client_id, "config":this.configFile}).then((res) => {
                 this.isLoading = false;
                 //console.log('apply-res',res)
                 if (res.data.status) {
