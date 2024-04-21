@@ -228,8 +228,12 @@
                         <p v-if="message.seed">Seed: <span class="font-thin">{{ message.seed }}</span></p>
                         <p v-if="message.nb_tokens">Number of tokens: <span class="font-thin"
                                 :title="'Number of Tokens: ' + message.nb_tokens">{{ message.nb_tokens }}</span></p>
-                        <p v-if="time_spent">Time spent: <span class="font-thin"
-                                :title="'Finished generating: ' + finished_generating_at_parsed">{{ time_spent }}</span></p>
+                        <p v-if="warmup_duration">Warmup duration: <span class="font-thin"
+                                :title="'Warmup duration: ' + warmup_duration">{{ warmup_duration }}</span></p>
+                        <p v-if="time_spent">Generation duration: <span class="font-thin"
+                                :title="'Finished generating: ' + time_spent">{{ time_spent }}</span></p>
+                        <p v-if="generation_rate">Rate: <span class="font-thin"
+                                :title="'Generation rate: ' + generation_rate">{{ generation_rate }}</span></p>
                     </div>
 
                 </div>
@@ -381,6 +385,27 @@ export default {
         }
 
     }, methods: {
+        computeTimeDiff(startTime, endTime){
+            let timeDiff = endTime.getTime() - startTime.getTime();
+
+
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+
+            timeDiff -= hours * (1000 * 60 * 60);
+
+
+
+            const mins = Math.floor(timeDiff / (1000 * 60));
+
+            timeDiff -= mins * (1000 * 60);
+
+            const secs = Math.floor(timeDiff / 1000)
+            timeDiff -= secs * 1000;
+
+            return [hours, mins, secs]
+        },
+
+
         insertTab(event) {
             const textarea = event.target;
             const start = textarea.selectionStart;
@@ -736,8 +761,6 @@ export default {
 
             })
         },
-
-
     },
     computed: {
         editMsgMode:{
@@ -775,35 +798,20 @@ export default {
         },
 
         time_spent() {
-            const startTime = new Date(Date.parse(this.message.created_at))
+            const startTime = new Date(Date.parse(this.message.started_generating_at))
             const endTime = new Date(Date.parse(this.message.finished_generating_at))
+            console.log("Computing the generation duration, ", startTime," -> ", endTime)
+
             //const spentTime = new Date(endTime - startTime)
             const same = endTime.getTime() === startTime.getTime();
             if (same) {
-
                 return undefined
             }
 
-            if (!endTime.getTime()) {
+            if (!startTime.getTime() || !endTime.getTime()) {
                 return undefined
             }
-            let timeDiff = endTime.getTime() - startTime.getTime();
-
-
-            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-
-            timeDiff -= hours * (1000 * 60 * 60);
-
-
-
-            const mins = Math.floor(timeDiff / (1000 * 60));
-
-            timeDiff -= mins * (1000 * 60);
-
-            const secs = Math.floor(timeDiff / 1000)
-            timeDiff -= secs * 1000;
-
-
+            let [hours, mins, secs] = this.computeTimeDiff(startTime, endTime)
 
             // let spentTime = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
             // const result = spentTime.getSeconds();
@@ -823,7 +831,69 @@ export default {
             return time
 
 
+        },
+        warmup_duration() {
+            const createdTime = new Date(Date.parse(this.message.created_at))
+            const endTime = new Date(Date.parse(this.message.started_generating_at))
+            console.log("Computing the warmup duration, ",createdTime," -> ", endTime)
+            //const spentTime = new Date(endTime - startTime)
+            const same = endTime.getTime() === createdTime.getTime();
+            if (same) {
+                return 0
+            }
+
+            if (!createdTime.getTime() || !endTime.getTime()) {
+                return undefined
+            }
+            let hours, mins, secs;
+            [hours, mins, secs] = this.computeTimeDiff(createdTime, endTime)
+
+            // let spentTime = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+            // const result = spentTime.getSeconds();
+
+            function addZero(i) {
+                if (i < 10) { i = "0" + i }
+                return i;
+            }
+
+            // const d = new Date();
+            // let h = addZero(spentTime.getHours());
+            // let m = addZero(spentTime.getMinutes());
+            // let s = addZero(spentTime.getSeconds());
+            const time = addZero(hours) + "h:" + addZero(mins) + "m:" + addZero(secs) + 's';
+
+
+            return time
+
+
+        },
+        generation_rate() {
+            const startTime = new Date(Date.parse(this.message.started_generating_at))
+            const endTime = new Date(Date.parse(this.message.finished_generating_at))
+            const nb_tokens = this.message.nb_tokens
+            console.log("Computing the generation rate, ", nb_tokens, " in ", startTime," -> ", endTime)
+            //const spentTime = new Date(endTime - startTime)
+            const same = endTime.getTime() === startTime.getTime();
+            if (same) {
+                return undefined
+            }
+            if (!nb_tokens){
+                return undefined
+            }
+            if (!startTime.getTime() || !endTime.getTime()) {
+                return undefined
+            }
+            let timeDiff = endTime.getTime() - startTime.getTime();
+            const secs = Math.floor(timeDiff / 1000)
+
+            const rate = nb_tokens/secs;
+
+
+            return Math.round(rate) + " t/s"
+
+
         }
+
     }
 
 
