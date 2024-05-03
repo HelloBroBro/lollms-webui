@@ -71,10 +71,10 @@ def add_events(sio:socketio):
             if lollmsElfServer.config.current_language and  current_language!= default_language:
                 language_path = lollmsElfServer.lollms_paths.personal_configuration_path/"personalities"/lollmsElfServer.personality.name/f"languages_{current_language}.yaml"
                 if not language_path.exists():
-                    lollmsElfServer.ShowBlockingMessage(f"This is the first time this personality seaks {current_language}\nLollms is reconditionning the persona in that language.\nThis will be done just once. Next time, the personality will speak {current_language} out of the box")
+                    lollmsElfServer.ShowBlockingMessage(f"This is the first time this personality speaks {current_language}\nLollms is reconditionning the persona in that language.\nThis will be done just once. Next time, the personality will speak {current_language} out of the box")
                     language_path.parent.mkdir(exist_ok=True, parents=True)
-                    conditionning = "!@>system: "+lollmsElfServer.personality.fast_gen(f"!@>instruction: Translate the following text to {current_language}:\n{lollmsElfServer.personality.personality_conditioning.replace('!@>system:','')}\n!@>translation:\n")
-                    welcome_message = lollmsElfServer.personality.fast_gen(f"!@>instruction: Translate the following text to {current_language}:\n{lollmsElfServer.personality.welcome_message}\n!@>translation:\n")
+                    conditionning = "!@>system: "+lollmsElfServer.personality.fast_gen(f"!@>instruction: Translate the following text to {current_language}:\n{lollmsElfServer.personality.personality_conditioning.replace('!@>system:','')}\n!@>translation:\n", callback=lollmsElfServer.personality.sink)
+                    welcome_message = lollmsElfServer.personality.fast_gen(f"!@>instruction: Translate the following text to {current_language}:\n{lollmsElfServer.personality.welcome_message}\n!@>translation:\n", callback=lollmsElfServer.personality.sink)
                     with open(language_path,"w",encoding="utf-8", errors="ignore") as f:
                         yaml.safe_dump({"conditionning":conditionning,"welcome_message":welcome_message}, f)
                     lollmsElfServer.HideBlockingMessage()
@@ -122,11 +122,11 @@ def add_events(sio:socketio):
         ASCIIColors.yellow(f"Loading discussion for client {client_id} ... ", end="")
         if "id" in data:
             discussion_id = data["id"]
-            lollmsElfServer.session.get_client(client_id).discussion = Discussion(discussion_id, lollmsElfServer.db)
+            lollmsElfServer.session.get_client(client_id).discussion = Discussion(lollmsElfServer, discussion_id, lollmsElfServer.db)
         else:
             if lollmsElfServer.session.get_client(client_id).discussion is not None:
                 discussion_id = lollmsElfServer.session.get_client(client_id).discussion.discussion_id
-                lollmsElfServer.session.get_client(client_id).discussion = Discussion(discussion_id, lollmsElfServer.db)
+                lollmsElfServer.session.get_client(client_id).discussion = Discussion(lollmsElfServer, discussion_id, lollmsElfServer.db)
             else:
                 lollmsElfServer.session.get_client(client_id).discussion = lollmsElfServer.db.create_discussion()
         messages = lollmsElfServer.session.get_client(client_id).discussion.get_messages()
