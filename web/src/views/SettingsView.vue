@@ -228,10 +228,10 @@
                                             <label for="app_custom_logo" class="text-sm font-bold" style="margin-right: 1rem;">Application logo:</label>
                                         </td>
                                         <td>
-                                            <label for="avatar-upload">
-                                                <img :src="configFile.app_custom_logo!=''? '/user_infos/'+configFile.app_custom_logo:storeLogo" class="w-50 h-50 rounded-full" style="max-width: 50px; max-height: 50px; cursor: pointer;">
+                                            <label for="logo-upload">
+                                                <img :src="configFile.app_custom_logo!=null && configFile.app_custom_logo!=''? '/user_infos/'+configFile.app_custom_logo:storeLogo" class="w-50 h-50 rounded-full" style="max-width: 50px; max-height: 50px; cursor: pointer;">
                                             </label>
-                                            <input type="file" id="avatar-upload" style="display: none" @change="uploadLogo">
+                                            <input type="file" id="logo-upload" style="display: none" @change="uploadLogo">
                                         </td>
                                         <td style="width: 10%;">
                                             <button class="text-2xl hover:text-red-600 duration-75 active:scale-90 " title="Discard title changes"
@@ -496,9 +496,9 @@
                                         </td>
                                         <td>
                                             <label for="avatar-upload">
-                                                <img :src="configFile.user_avatar!=''?'/user_infos/'+configFile.user_avatar: storeLogo" class="w-50 h-50 rounded-full" style="max-width: 50px; max-height: 50px; cursor: pointer;">
+                                                <img :src="configFile.user_avatar!=null && configFile.user_avatar!=''?'/user_infos/'+configFile.user_avatar: storeLogo" class="w-50 h-50 rounded-full" style="max-width: 50px; max-height: 50px; cursor: pointer;">
                                             </label>
-                                            <input type="file" id="avatar-upload" style="display: none" @change="uploadAvatar()">
+                                            <input type="file" id="avatar-upload" style="display: none" @change="uploadAvatar">
                                         </td>
                                         <td style="width: 10%;">
                                             <button class="text-2xl hover:text-red-600 duration-75 active:scale-90 " title="Discard title changes"
@@ -887,6 +887,22 @@
                                     <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                         <tr>
                                         <td style="min-width: 200px;">
+                                            <label for="whisper_activate" class="text-sm font-bold" style="margin-right: 1rem;">Activate Whisper at startup:</label>
+                                        </td>
+                                        <td>
+                                            <div class="flex flex-row">
+                                            <input
+                                            type="checkbox"
+                                            id="whisper_activate"
+                                            required
+                                            v-model="configFile.whisper_activate"
+                                            @change="settingsChanged=true"
+                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                            >
+                                            </div>
+                                        </td>                                        </tr>
+                                        <tr>
+                                        <td style="min-width: 200px;">
                                             <label for="whisper_model" class="text-sm font-bold" style="margin-right: 1rem;">Whisper model:</label>
                                         </td>
                                         <td>
@@ -904,7 +920,7 @@
                                             </select>
                                             </div>
                                         </td>
-                                        </tr>
+                                        </tr>                                        
 
                                     </table>
                                 </Card>
@@ -1458,6 +1474,11 @@
                                 <a class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" href="https://github.com/ParisNeo/stable-diffusion-webui/blob/master/LICENSE.txt" target="_blank">automatic1111's sd licence</a>
                                 </div>
                             </td>
+                            <td>
+                                <div class="flex flex-row">
+                                <button class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" @click="reinstallSDService">install sd service</button>
+                                </div>
+                            </td>
                             </tr>                                        
                             <tr>
                             <td style="min-width: 200px;">
@@ -1839,7 +1860,7 @@
                         <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="enable_voice_service" class="text-sm font-bold" style="margin-right: 1rem;">Enable elastic search service:</label>
+                                <label for="xtts_enable" class="text-sm font-bold" style="margin-right: 1rem;">Enable elastic search service:</label>
                             </td>
                             <td>
                                 <div class="flex flex-row">
@@ -1889,15 +1910,15 @@
                         <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="enable_voice_service" class="text-sm font-bold" style="margin-right: 1rem;">Enable voice service:</label>
+                                <label for="xtts_enable" class="text-sm font-bold" style="margin-right: 1rem;">Enable voice service:</label>
                             </td>
                             <td>
                                 <div class="flex flex-row">
                                 <input
                                 type="checkbox"
-                                id="enable_voice_service"
+                                id="xtts_enable"
                                 required
-                                v-model="configFile.enable_voice_service"
+                                v-model="configFile.xtts_enable"
                                 @change="settingsChanged=true"
                                 class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                 >
@@ -1912,6 +1933,8 @@
                                 <div class="flex flex-row">
                                 <button class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" @click="reinstallAudioService">install xtts service</button>
                                 <button class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" @click="startAudioService">start xtts service</button>
+                                <a class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" :href="this.$store.state.config.xtts_base_url+'/docs'" target="_blank">show xtts service entries</a>
+                                <a class="hover:text-primary bg-green-200 rounded-lg p-4 m-4 w-full text-center items-center" href="https://github.com/ParisNeo/xtts-api-server/blob/main/LICENSE" target="_blank">licence</a>
                                 </div>
                             </td>
                             </tr>                                        
@@ -1934,11 +1957,11 @@
                             </tr> 
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="current_language" class="text-sm font-bold" style="margin-right: 1rem;">Current language:</label>
+                                <label for="xtts_current_language" class="text-sm font-bold" style="margin-right: 1rem;">Current language:</label>
                             </td>
                             <td>
                                 <div class="flex flex-row">
-                                    <select v-model="current_language" @change="settingsChanged=true" :disabled="!enable_voice_service">
+                                    <select v-model="xtts_current_language" @change="settingsChanged=true" :disabled="!xtts_enable">
                                     <option v-for="(value, key) in voice_languages" :key="key" :value="value">
                                         {{ key }}
                                     </option>
@@ -1953,7 +1976,7 @@
                             </td>
                             <td>
                                 <div class="flex flex-row">
-                                    <select v-model="xtts_current_voice" @change="settingsChanged=true" :disabled="!enable_voice_service">
+                                    <select v-model="xtts_current_voice" @change="settingsChanged=true" :disabled="!xtts_enable">
                                     <option v-for="voice in voices" :key="voice" :value="voice">
                                         {{ voice }}
                                     </option>
@@ -1974,7 +1997,7 @@
                                         v-model="configFile.xtts_use_deepspeed"
                                         @change="settingsChanged=true"
                                         class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
-                                        :disabled="!enable_voice_service"
+                                        :disabled="!xtts_enable"
                                     >
                                 </div>
                             </td>
@@ -1992,7 +2015,7 @@
                                         v-model="configFile.xtts_use_streaming_mode"
                                         @change="settingsChanged=true"
                                         class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
-                                        :disabled="!enable_voice_service"
+                                        :disabled="!xtts_enable"
                                     >
                                 </div>
                             </td>
@@ -2010,11 +2033,158 @@
                                         v-model="configFile.auto_read"
                                         @change="settingsChanged=true"
                                         class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
-                                        :disabled="!enable_voice_service"
+                                        :disabled="!xtts_enable"
                                     >
                                 </div>
                             </td>
                             </tr>                    
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_stream_chunk_size" class="text-sm font-bold" style="margin-right: 1rem;">xtts stream chunk size:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="text"
+                                        id="xtts_stream_chunk_size"
+                                        required
+                                        v-model="configFile.xtts_stream_chunk_size"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_temperature" class="text-sm font-bold" style="margin-right: 1rem;">Temperature:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_temperature"
+                                        required
+                                        v-model.number="configFile.xtts_temperature"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                        step="0.01"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_length_penalty" class="text-sm font-bold" style="margin-right: 1rem;">Length Penalty:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_length_penalty"
+                                        required
+                                        v-model.number="configFile.xtts_length_penalty"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                        step="0.1"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_repetition_penalty" class="text-sm font-bold" style="margin-right: 1rem;">Repetition Penalty:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_repetition_penalty"
+                                        required
+                                        v-model.number="configFile.xtts_repetition_penalty"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                        step="0.1"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_top_k" class="text-sm font-bold" style="margin-right: 1rem;">Top K:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_top_k"
+                                        required
+                                        v-model.number="configFile.xtts_top_k"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_top_p" class="text-sm font-bold" style="margin-right: 1rem;">Top P:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_top_p"
+                                        required
+                                        v-model.number="configFile.xtts_top_p"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="xtts_speed" class="text-sm font-bold" style="margin-right: 1rem;">Speed:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="number"
+                                        id="xtts_speed"
+                                        required
+                                        v-model.number="configFile.xtts_speed"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                        step="0.1"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
+                            <!-- Keeping the enable_text_splitting as is since it inherently respects the boolean data type -->
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="enable_text_splitting" class="text-sm font-bold" style="margin-right: 1rem;">Enable Text Splitting:</label>
+                            </td>
+                            <td>
+                                <div class="flex flex-row">
+                                    <input
+                                        type="checkbox"
+                                        id="enable_text_splitting"
+                                        v-model="configFile.enable_text_splitting"
+                                        @change="settingsChanged=true"
+                                        class="mt-1 px-2 py-1 border border-gray-300 rounded dark:bg-gray-600"
+                                    >
+                                </div>
+                            </td>
+                            </tr>
+
                         </table>
 
                     </Card>
@@ -3112,9 +3282,12 @@ export default {
         //await socket.on('install_progress', this.progressListener);
         //refreshHardwareUsage()
     }, 
-    methods: {     
+    methods: {
+        install_model(){
+
+        },
         reinstallSDService(){
-            axios.get('install_sd')
+            axios.post('/install_sd', {client_id:this.$store.state.client_id}, this.posts_headers)
             .then(response => {
 
             })
@@ -3124,7 +3297,7 @@ export default {
 
         },
         upgradeSDService(){
-            axios.get('upgrade_sd')
+            axios.post('upgrade_sd', {client_id:this.$store.state.client_id}, this.posts_headers)
             .then(response => {
 
             })
@@ -3134,7 +3307,7 @@ export default {
 
         },
         startSDService(){
-            axios.get('start_sd')
+            axios.post('start_sd', {client_id:this.$store.state.client_id}, this.posts_headers)
             .then(response => {
 
             })
@@ -3144,7 +3317,7 @@ export default {
 
         },
         showSD(){
-            axios.get('show_sd')
+            axios.post('show_sd', {client_id:this.$store.state.client_id}, this.posts_headers)
             .then(response => {
 
             })
@@ -3427,7 +3600,7 @@ export default {
             const file = event.target.files[0]; // Get the selected file
             const formData = new FormData(); // Create a FormData object
             formData.append('logo', file); // Add the file to the form data with the key 'avatar'
-            console.log("Uploading avatar")
+            console.log("Uploading logo")
             // Make an API request to upload the avatar
             axios.post('/upload_logo', formData)
                 .then(response => {
@@ -5478,18 +5651,18 @@ export default {
                 this.$store.state.config.auto_read = value
             },
         },
-        enable_voice_service:{
+        xtts_enable:{
             get() {
-                return this.$store.state.config.enable_voice_service;
+                return this.$store.state.config.xtts_enable;
             },
             set(value) {
                 // You should not set the value directly here; use the updateSetting method instead
-                this.$store.state.config.enable_voice_service = value
+                this.$store.state.config.xtts_enable = value
             },
         },
-        current_language:{
+        xtts_current_language:{
             get() {
-                return this.$store.state.config.current_language;
+                return this.$store.state.config.xtts_current_language;
             },
             set(value) {
                 // You should not set the value directly here; use the updateSetting method instead
@@ -5726,7 +5899,7 @@ export default {
 
     },
     watch: {
-        enable_voice_service(newValue) {
+        xtts_enable(newValue) {
             if (!newValue) {
               this.configFile.auto_read = false;
             }

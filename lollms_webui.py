@@ -21,7 +21,7 @@ from lollms.com import NotificationType, NotificationDisplayType, LoLLMsCom
 from lollms.app import LollmsApplication
 from lollms.utilities import File64BitsManager, PromptReshaper, PackageManager, find_first_available_file_index, run_async, is_asyncio_loop_running, yes_or_no_input, process_ai_output
 from lollms.generation import RECEPTION_MANAGER, ROLE_CHANGE_DECISION, ROLE_CHANGE_OURTPUT
-
+from lollms.client_session import Client
 import git
 import asyncio
 import os
@@ -433,7 +433,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
                                                 run_scripts=True)
 
                     mounted_personalities.append(personality)
-                    if self.config.enable_voice_service and self.config.auto_read and len(personality.audio_samples)>0:
+                    if self.config.xtts_enable and self.config.auto_read and len(personality.audio_samples)>0:
                         try:
                             from lollms.services.xtts.lollms_xtts import LollmsXTTS
                             if self.tts is None:
@@ -939,6 +939,9 @@ class LOLLMSWebUI(LOLLMSElfServer):
         Processes a chunk of generated text
         """
         client = self.session.get_client(client_id)
+        if chunk is None:
+            return
+        
         if chunk is not None:
             if not client_id in list(self.session.clients.keys()):
                 self.error("Connection lost", client_id=client_id)
@@ -1051,7 +1054,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
                 self.personality.text_files = client.discussion.text_files
                 self.personality.image_files = client.discussion.image_files
                 self.personality.audio_files = client.discussion.audio_files
-                self.personality.processor.run_workflow(prompt, full_prompt, callback, context_details,client=client)
+                output = self.personality.processor.run_workflow(prompt, full_prompt, callback, context_details,client=client)
             except Exception as ex:
                 trace_exception(ex)
                 # Catch the exception and get the traceback as a list of strings
@@ -1061,13 +1064,15 @@ class LOLLMSWebUI(LOLLMSElfServer):
                 ASCIIColors.error(f"Workflow run failed.\nError:{ex}")
                 ASCIIColors.error(traceback_text)
                 if callback:
-                    callback(f"Workflow run failed\nError:{ex}", MSG_TYPE.MSG_TYPE_EXCEPTION)                   
+                    callback(f"Workflow run failed\nError:{ex}", MSG_TYPE.MSG_TYPE_EXCEPTION)
+                return          
             print("Finished executing the workflow")
-            return
+            return output
 
 
-        self._generate(full_prompt, n_predict, client_id, callback)
+        txt = self._generate(full_prompt, n_predict, client_id, callback)
         ASCIIColors.success("\nFinished executing the generation")
+        return txt
 
     def _generate(self, prompt, n_predict, client_id, callback=None):
         client = self.session.get_client(client_id)
@@ -1194,7 +1199,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
                                     client_id=client_id,
                                     callback=partial(self.process_chunk,client_id = client_id)
                                 )
-                    if self.config.enable_voice_service and self.config.auto_read and len(self.personality.audio_samples)>0:
+                    if self.config.xtts_enable and self.config.auto_read and len(self.personality.audio_samples)>0:
                         try:
                             self.process_chunk("Generating voice output",MSG_TYPE.MSG_TYPE_STEP_START,client_id=client_id)
                             from lollms.services.xtts.lollms_xtts import LollmsXTTS
@@ -1306,3 +1311,31 @@ class LOLLMSWebUI(LOLLMSElfServer):
             print()
             self.busy=False
             return ""
+
+    def receive_and_generate(self, text, client:Client, callback=None):
+        prompt = text
+        try:
+            nb_tokens = len(self.model.tokenize(prompt))
+        except:
+            nb_tokens = None
+        ump = self.config.discussion_prompt_separator +self.config.user_name.strip() if self.config.use_user_name_in_discussions else self.personality.user_message_prefix
+        message = client.discussion.add_message(
+            message_type    = MSG_TYPE.MSG_TYPE_FULL.value,
+            sender_type     = SENDER_TYPES.SENDER_TYPES_USER.value,
+            sender          = ump.replace(self.config.discussion_prompt_separator,"").replace(":",""),
+            content         = prompt,
+            metadata        = None,
+            parent_message_id=self.message_id,
+            nb_tokens=nb_tokens
+        )
+        discussion_messages, current_message, tokens, context_details, internet_search_infos = self.prepare_query(client.client_id, client.discussion.current_message.id, False, n_tokens=self.config.min_n_predict, force_using_internet=False)
+        self.new_message(
+                        client.client_id, 
+                        self.personality.name,
+                        message_type= MSG_TYPE.MSG_TYPE_FULL,
+                        content=""
+        )
+        client.generated_text = ""
+        self.generate(discussion_messages, current_message, context_details, self.config.ctx_size-len(tokens)-1, client.client_id, callback if callback else partial(self.process_chunk, client_id=client.client_id))
+        self.close_message(client.client_id)        
+        return client.generated_text
