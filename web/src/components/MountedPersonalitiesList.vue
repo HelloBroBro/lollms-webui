@@ -47,6 +47,7 @@
                             :on-settings="onSettingsPersonality"  
                             :on-reinstall="onPersonalityReinstall"
                             :on-talk="handleOnTalk"
+                            :on-open-folder="handleOpenFolder"
                            />
                     </TransitionGroup>
                 </div>
@@ -116,6 +117,11 @@ export default {
 
 
         return {
+
+            posts_headers : {
+                'accept': 'application/json',
+                'Content-Type': 'application/json'
+            },            
             bUrl: bUrl,
             isMounted: false,
             isLoading: false
@@ -184,6 +190,7 @@ export default {
         personalityImgPlacehodler(event) {
             event.target.src = defaultPersonalityImgPlaceholder
         },
+        
         onPersonalityReinstall(persItem){
             console.log('on reinstall ', persItem)
             this.isLoading = true
@@ -244,6 +251,16 @@ export default {
         },
         onPersonalityRemount(persItem){
             this.reMountPersonality(persItem)
+        },
+        async handleOpenFolder(pers){
+            const data = {
+                                    client_id:this.$store.state.client_id, 
+                                    personality_folder: pers.personality.folder
+                                }
+            console.log(data)                    
+            await axios.post("/open_personality_folder",
+                                data
+                            )
         },
         async handleOnTalk(pers){
             // eslint-disable-next-line no-unused-vars
@@ -394,17 +411,16 @@ export default {
         },        
         async unmount_personality(pers) {
             if (!pers) { return { 'status': false, 'error': 'no personality - unmount_personality' } }
-
             const obj = {
+                client_id: this.$store.state.client_id,
+                language: pers.language,
                 category: pers.category,
-                folder: pers.folder,
-                language: pers.language
+                folder: pers.folder
             }
 
 
             try {
-
-                const res = await axios.post('/unmount_personality', obj);
+                const res = await axios.post('/unmount_personality', obj, {headers: this.posts_headers});
 
 
                 if (res) {
