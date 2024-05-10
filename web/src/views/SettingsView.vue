@@ -535,7 +535,7 @@
                                                 type="number"
                                                 id="max_n_predict"
                                                 required
-                                                v-model="configFile.min_n_predict"
+                                                v-model="configFile.max_n_predict"
                                                 @change="settingsChanged=true"
                                                 class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                                 >
@@ -543,14 +543,14 @@
                                         </tr>                                        
                                         <tr>
                                             <td style="min-width: 200px;">
-                                                <label for="min_n_predict" class="text-sm font-bold" style="margin-right: 1rem;">Minimum number of output tokens space (forces the model to have more space to speak):</label>
+                                                <label for="max_n_predict" class="text-sm font-bold" style="margin-right: 1rem;">Minimum number of output tokens space (forces the model to have more space to speak):</label>
                                             </td>
                                             <td style="width: 100%;">
                                                 <input
                                                 type="number"
-                                                id="min_n_predict"
+                                                id="max_n_predict"
                                                 required
-                                                v-model="configFile.min_n_predict"
+                                                v-model="configFile.max_n_predict"
                                                 @change="settingsChanged=true"
                                                 class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                                 >
@@ -3503,6 +3503,7 @@ export default {
         getVoices() {
         // Fetch available voices from the SpeechSynthesis API
         if ('speechSynthesis' in window) {
+            console.log("voice synthesis")
             this.audioVoices = speechSynthesis.getVoices();
             console.log("Voices:"+this.audioVoices)
             if (!this.audio_out_voice && this.audioVoices.length > 0) {
@@ -5670,8 +5671,8 @@ export default {
             },
             set(value) {
                 // You should not set the value directly here; use the updateSetting method instead
-                console.log("Current voice set to ",value)
-                this.$store.state.config.current_language = value
+                console.log("Current xtts voice set to ",value)
+                this.$store.state.config.xtts_current_language = value
             },
         },
         xtts_current_voice:{
