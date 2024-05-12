@@ -44,7 +44,8 @@ def add_events(sio:socketio):
         ASCIIColors.yellow("New descussion requested")
         client_id = sid
         title = data["title"]
-        lollmsElfServer.session.get_client(client_id).discussion = lollmsElfServer.db.create_discussion(title)
+        client = lollmsElfServer.session.get_client(client_id)
+        client.discussion = lollmsElfServer.db.create_discussion(title)
         # Get the current timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
@@ -53,6 +54,15 @@ def add_events(sio:socketio):
             lollmsElfServer.session.get_client(client_id).discussion = lollmsElfServer.db.load_last_discussion()
     
         if lollmsElfServer.personality.welcome_message!="":
+            if lollmsElfServer.personality.processor:
+                lollmsElfServer.ShowBlockingMessage("Building custom welcome message.\nPlease standby.")
+                try:
+                    welcome_message = lollmsElfServer.personality.processor.get_welcome(client)
+                    if welcome_message is not None:
+                        lollmsElfServer.personality.welcome_message = welcome_message
+                except Exception as ex:
+                    trace_exception(ex)
+                lollmsElfServer.HideBlockingMessage()
             if lollmsElfServer.personality.welcome_audio_path.exists():
                 for voice in lollmsElfServer.personality.welcome_audio_path.iterdir():
                     if voice.suffix.lower() in [".wav",".mp3"]:
