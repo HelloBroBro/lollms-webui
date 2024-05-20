@@ -883,143 +883,7 @@
                                         </tr>                                                                                                                     
                                     </table>
                                 </Card>
-
-                                <Card title="Browser Audio" :is_subcard="true" class="pb-2  m-2">
-                                    <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                            <label for="activate_audio_infos" class="text-sm font-bold" style="margin-right: 1rem;">Activate audio infos:</label>
-                                        </td>
-                                        <td>
-                                            <div class="flex flex-row">
-                                            <input
-                                            type="checkbox"
-                                            id="activate_audio_infos"
-                                            required
-                                            v-model="configFile.activate_audio_infos"
-                                            @change="settingsChanged=true"
-                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                            </div>
-                                        </td>
-                                        </tr>
-
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                            <label for="audio_auto_send_input" class="text-sm font-bold" style="margin-right: 1rem;">Send audio input automatically:</label>
-                                        </td>
-                                        <td>
-                                            <div class="flex flex-row">
-                                            <input
-                                            type="checkbox"
-                                            id="audio_auto_send_input"
-                                            required
-                                            v-model="configFile.audio_auto_send_input"
-                                            @change="settingsChanged=true"
-                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                            </div>
-                                        </td>
-                                        </tr>
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                            <label for="auto_speak" class="text-sm font-bold" style="margin-right: 1rem;">Enable auto speak:</label>
-                                        </td>
-                                        <td>
-                                            <div class="flex flex-row">
-                                            <input
-                                            type="checkbox"
-                                            id="auto_speak"
-                                            required
-                                            v-model="configFile.auto_speak"
-                                            @change="settingsChanged=true"
-                                            class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                            </div>
-                                        </td>
-                                        </tr>
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                            <label for="audio_pitch" class="text-sm font-bold" style="margin-right: 1rem;">audio pitch:</label>
-                                        </td>
-                                        <td>
-                                            <input id="audio_pitch" v-model="configFile.audio_pitch"
-                                            @change="settingsChanged=true"
-                                            type="range" min="0" max="10" step="0.1"
-                                            class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                            <input v-model="configFile.audio_pitch"
-                                            @change="settingsChanged=true"
-                                            class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                        </td>
-                                        </tr>
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                            <label for="audio_silenceTimer" class="text-sm font-bold" style="margin-right: 1rem;">audio in silence timer (ms):</label>
-                                        </td>
-                                        <td>
-                                            <input id="audio_silenceTimer" v-model="configFile.audio_silenceTimer"
-                                            @change="settingsChanged=true"
-                                            type="range" min="0" max="10000" step="1"
-                                            class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                            <input v-model="configFile.audio_silenceTimer"
-                                            @change="settingsChanged=true"
-                                            class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                        </td>
-                                        </tr>                                        
-                                        
-                                        <tr>
-                                            <td style="min-width: 200px;">
-                                            <label for="audio_in_language" class="text-sm font-bold" style="margin-right: 1rem;">Input Audio Language:</label>
-                                            </td>
-                                            <td>
-                                            <!-- Select element for choosing the input audio language -->
-                                            <select
-                                                id="audio_in_language"
-                                                v-model="configFile.audio_in_language"
-                                                @change="settingsChanged=true"
-                                                class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                            >
-                                                <!-- Options with language codes and corresponding language names -->
-                                                <option v-for="language in audioLanguages" :key="language.code" :value="language.code">
-                                                {{ language.name }}
-                                                </option>
-                                            </select>
-                                            </td>
-                                        </tr> 
-                                        <tr>
-                                        <td style="min-width: 200px;">
-                                        <label for="audio_out_voice" class="text-sm font-bold" style="margin-right: 1rem;">Output Audio Voice:</label>
-                                        </td>
-                                        <td>
-                                        <!-- Select element for choosing the output audio voice -->
-                                        <select
-                                            id="audio_out_voice"
-                                            v-model="configFile.audio_out_voice"
-                                            @change="settingsChanged=true"
-                                            class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
-                                        >
-                                            <!-- Options with available voices in the browser -->
-                                            <option v-for="voice in audioVoices" :key="voice.name" :value="voice.name">
-                                            {{ voice.name }}
-                                            </option>
-                                        </select>
-                                        </td>
-                                    </tr>                        
-                                        
-
-                                    </table>
-
-                                </Card>
                     </div>
-
-
-
-
-
-
-
                 </div>
             </div>
 
@@ -1274,11 +1138,11 @@
 
                                 
                 <div :class="{ 'hidden': servers_conf_collapsed }" class="flex flex-col mb-2 px-3 pb-0">
-                    <Card title="Lollms service" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="Default services selection" :is_subcard="true" class="pb-2  m-2">
                         <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="active_tts_service" class="text-sm font-bold" style="margin-right: 1rem;">Active TTS Service:</label>
+                                <label for="active_tts_service" class="text-sm font-bold" style="margin-right: 1rem;" title="Default Text to speach engine">Active TTS Service:</label>
                             </td>
                             <td style="width: 100%;">
                                 <select
@@ -1289,6 +1153,7 @@
                                 class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                 >
                                     <option value="None">None</option>
+                                    <option value="browser">Use Browser TTS (doesn't work in realtime mode)</option>
                                     <option value="xtts">XTTS</option>
                                     <option value="openai_tts">Open AI TTS</option>
                                 </select>
@@ -1296,7 +1161,26 @@
                             </tr>
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="active_tti_service" class="text-sm font-bold" style="margin-right: 1rem;">Active TTI Service:</label>
+                                <label for="active_stt_service" class="text-sm font-bold" style="margin-right: 1rem;" title="Default Speach to Text engine">Active STT Service:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <select
+                                id="active_stt_service"
+                                required
+                                v-model="configFile.active_stt_service"
+                                @change="settingsChanged=true"
+                                class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                >
+                                    <option value="None">None</option>
+                                    <option value="whisper">Whisper</option>
+                                    <option value="openai_whisper">Open AI Whisper</option>
+                                </select>
+                            </td>
+                            </tr>
+                            <tr></tr>                            
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="active_tti_service" class="text-sm font-bold" style="margin-right: 1rem;" title="Default Text to image engine">Active TTI Service:</label>
                             </td>
                             <td style="width: 100%;">
                                 <select
@@ -1317,26 +1201,25 @@
                             </tr>
                             <tr>
                             <td style="min-width: 200px;">
-                                <label for="active_stt_service" class="text-sm font-bold" style="margin-right: 1rem;">Active STT Service:</label>
+                                <label for="active_ttm_service" class="text-sm font-bold" style="margin-right: 1rem;" title="Default Text to Music engine">Active TTM Service:</label>
                             </td>
                             <td style="width: 100%;">
                                 <select
-                                id="active_stt_service"
+                                id="active_ttm_service"
                                 required
-                                v-model="configFile.active_stt_service"
+                                v-model="configFile.active_ttm_service"
                                 @change="settingsChanged=true"
                                 class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                 >
                                     <option value="None">None</option>
-                                    <option value="whisper">Whisper</option>
-                                    <option value="openai_whisper">Open AI Whisper</option>
+                                    <option value="musicgen">Music Gen</option>
                                 </select>
                             </td>
                             </tr>
 
                         </table>                    
                     </Card>
-                    <Card title="Lollms service" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="Lollms service" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
                         <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <tr>
                             <td style="min-width: 200px;">
@@ -1461,7 +1344,135 @@
                             </tr>   
                         </table>               
                     </Card>                    
-                    <Card title="TTS services" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="TTS services" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
+                        <Card title="Browser Audio" :is_subcard="true" class="pb-2  m-2">
+                            <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="activate_audio_infos" class="text-sm font-bold" style="margin-right: 1rem;">Activate audio infos:</label>
+                                </td>
+                                <td>
+                                    <div class="flex flex-row">
+                                    <input
+                                    type="checkbox"
+                                    id="activate_audio_infos"
+                                    required
+                                    v-model="configFile.activate_audio_infos"
+                                    @change="settingsChanged=true"
+                                    class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                    </div>
+                                </td>
+                                </tr>
+
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="audio_auto_send_input" class="text-sm font-bold" style="margin-right: 1rem;">Send audio input automatically:</label>
+                                </td>
+                                <td>
+                                    <div class="flex flex-row">
+                                    <input
+                                    type="checkbox"
+                                    id="audio_auto_send_input"
+                                    required
+                                    v-model="configFile.audio_auto_send_input"
+                                    @change="settingsChanged=true"
+                                    class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                    </div>
+                                </td>
+                                </tr>
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="auto_speak" class="text-sm font-bold" style="margin-right: 1rem;">Enable auto speak:</label>
+                                </td>
+                                <td>
+                                    <div class="flex flex-row">
+                                    <input
+                                    type="checkbox"
+                                    id="auto_speak"
+                                    required
+                                    v-model="configFile.auto_speak"
+                                    @change="settingsChanged=true"
+                                    class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                    </div>
+                                </td>
+                                </tr>
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="audio_pitch" class="text-sm font-bold" style="margin-right: 1rem;">audio pitch:</label>
+                                </td>
+                                <td>
+                                    <input id="audio_pitch" v-model="configFile.audio_pitch"
+                                    @change="settingsChanged=true"
+                                    type="range" min="0" max="10" step="0.1"
+                                    class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                    <input v-model="configFile.audio_pitch"
+                                    @change="settingsChanged=true"
+                                    class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                </td>
+                                </tr>
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="audio_silenceTimer" class="text-sm font-bold" style="margin-right: 1rem;">audio in silence timer (ms):</label>
+                                </td>
+                                <td>
+                                    <input id="audio_silenceTimer" v-model="configFile.audio_silenceTimer"
+                                    @change="settingsChanged=true"
+                                    type="range" min="0" max="10000" step="1"
+                                    class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                    <input v-model="configFile.audio_silenceTimer"
+                                    @change="settingsChanged=true"
+                                    class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                </td>
+                                </tr>                                        
+                                
+                                <tr>
+                                    <td style="min-width: 200px;">
+                                    <label for="audio_in_language" class="text-sm font-bold" style="margin-right: 1rem;">Input Audio Language:</label>
+                                    </td>
+                                    <td>
+                                    <!-- Select element for choosing the input audio language -->
+                                    <select
+                                        id="audio_in_language"
+                                        v-model="configFile.audio_in_language"
+                                        @change="settingsChanged=true"
+                                        class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                        <!-- Options with language codes and corresponding language names -->
+                                        <option v-for="language in audioLanguages" :key="language.code" :value="language.code">
+                                        {{ language.name }}
+                                        </option>
+                                    </select>
+                                    </td>
+                                </tr> 
+                                <tr>
+                                <td style="min-width: 200px;">
+                                <label for="audio_out_voice" class="text-sm font-bold" style="margin-right: 1rem;">Output Audio Voice:</label>
+                                </td>
+                                <td>
+                                <!-- Select element for choosing the output audio voice -->
+                                <select
+                                    id="audio_out_voice"
+                                    v-model="configFile.audio_out_voice"
+                                    @change="settingsChanged=true"
+                                    class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                >
+                                    <!-- Options with available voices in the browser -->
+                                    <option v-for="voice in audioVoices" :key="voice.name" :value="voice.name">
+                                    {{ voice.name }}
+                                    </option>
+                                </select>
+                                </td>
+                            </tr>                        
+                                
+
+                            </table>
+
+                        </Card>                        
                         <Card title="XTTS service" :is_subcard="true" class="pb-2  m-2">
                             <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                 <tr>
@@ -1809,7 +1820,7 @@
                             </table>
                         </Card>                        
                     </Card>
-                    <Card title="TTI services" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="TTI services" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
                         <Card title="Stable diffusion service" :is_subcard="true" class="pb-2  m-2">
                             <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                 <tr>
@@ -1992,7 +2003,7 @@
 
 
                     </Card>
-                    <Card title="STT services" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="STT services" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
                         <Card title="Whisper audio transcription" :is_subcard="true" class="pb-2  m-2">
                             <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                 <tr>
@@ -2034,8 +2045,50 @@
 
                             </table>
                         </Card>
+                        <Card title="Open AI Whisper audio transcription" :is_subcard="true" class="pb-2  m-2">
+                            <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <tr>
+                                <td style="min-width: 200px;">
+                                    <label for="openai_whisper_key" class="text-sm font-bold" style="margin-right: 1rem;">openai whisper key:</label>
+                                </td>
+                                <td>
+                                    <div class="flex flex-row">
+                                    <input
+                                    type="text"
+                                    id="openai_whisper_key"
+                                    required
+                                    v-model="configFile.openai_whisper_key"
+                                    @change="settingsChanged=true"
+                                    class="mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                    </div>
+                                </td>
+                                </tr>
+                                <tr>                                    
+                                <td style="min-width: 200px;">
+                                    <label for="openai_whisper_model" class="text-sm font-bold" style="margin-right: 1rem;">Open Ai Whisper model:</label>
+                                </td>
+                                <td>
+                                    <div class="flex flex-row">
+                                    <select
+                                        id="openai_whisper_model"
+                                        v-model="configFile.openai_whisper_model"
+                                        @change="settingsChanged=true"
+                                        class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                    >
+                                        <!-- Options with language codes and corresponding language names -->
+                                        <option v-for="whispermodel in whisperModels" :key="whispermodel" :value="whispermodel">
+                                        {{ whispermodel }}
+                                        </option>
+                                    </select>
+                                    </div>
+                                </td>
+                                </tr>                                        
+
+                            </table>
+                        </Card>                        
                     </Card>
-                    <Card title="TTT services" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="TTT services" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
                         <Card title="Ollama service" :is_subcard="true" class="pb-2  m-2">
                             <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                 <tr>
@@ -2284,7 +2337,7 @@
                             </table>                                
                         </Card>                        
                     </Card>
-                    <Card title="Misc" :is_subcard="true" class="pb-2  m-2">
+                    <Card title="Misc" :is_shrunk="true" :is_subcard="true" class="pb-2  m-2">
                         <Card title="Motion Ctrl service" :is_subcard="true" class="pb-2  m-2">
                             <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                 <tr>
@@ -2741,7 +2794,7 @@
                                         </button>
                                         <button @click.stop="unmountPersonality (item)">
                                             <span
-                                                class="hidden group-hover:block top-0 left-7 absolute active:scale-90 bg-bg-light dark:bg-bg-dark rounded-full border-2  border-transparent"
+                                                class="hidden group-hover:block -top-2 -right-1 absolute active:scale-90 bg-bg-light dark:bg-bg-dark rounded-full border-2  border-transparent"
                                                 title="Unmount personality">
                                                 <!-- UNMOUNT BUTTON -->
                                                 <svg aria-hidden="true" class="w-4 h-4 text-red-600 hover:text-red-500 "
@@ -2751,7 +2804,6 @@
                                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                                                         clip-rule="evenodd"></path>
                                                 </svg>
-
                                             </span>
                                         </button>
                                     </div>

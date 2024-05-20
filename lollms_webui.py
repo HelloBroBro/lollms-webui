@@ -72,7 +72,7 @@ def terminate_thread(thread):
         else:
             ASCIIColors.yellow("Canceled successfully")# The current version of the webui
 
-lollms_webui_version="9.8 (Alpha)"
+lollms_webui_version="9.8 (Beta)"
 
 
 
@@ -142,7 +142,6 @@ class LOLLMSWebUI(LOLLMSElfServer):
         
         self.config_file_path = config.file_path
         self.cancel_gen = False
-
         
         if self.config.auto_update:
             if self.check_update_():
@@ -827,7 +826,45 @@ class LOLLMSWebUI(LOLLMSElfServer):
                         }, to=client_id
                 )
             )
-        
+    def new_block(          self,                  
+                            client_id, 
+                            sender=None, 
+                            content="",
+                            parameters=None,
+                            metadata=None,
+                            ui=None,
+                            message_type:MSG_TYPE=MSG_TYPE.MSG_TYPE_FULL, 
+                            sender_type:SENDER_TYPES=SENDER_TYPES.SENDER_TYPES_AI,
+                            open=False
+                        ):
+        # like new_message but without adding the information to the database
+        client = self.session.get_client(client_id)
+        run_async(partial(
+                    self.sio.emit,'new_message',
+                        {
+                            "sender":                   sender,
+                            "message_type":             message_type.value,
+                            "sender_type":              SENDER_TYPES.SENDER_TYPES_AI.value,
+                            "content":                  content,
+                            "parameters":               parameters,
+                            "metadata":                 metadata,
+                            "ui":                       ui,
+                            "id":                       0,
+                            "parent_message_id":        0,
+
+                            'binding':                  self.config["binding_name"],
+                            'model' :                   self.config["model_name"], 
+                            'personality':              self.config["personalities"][self.config["active_personality_id"]],
+
+                            'created_at':               client.discussion.current_message.created_at,
+                            'started_generating_at': client.discussion.current_message.started_generating_at,
+                            'finished_generating_at': client.discussion.current_message.finished_generating_at,
+                            'nb_tokens': client.discussion.current_message.nb_tokens,
+
+                            'open':                     open
+                        }, to=client_id
+                )
+            )        
     def send_refresh(self, client_id):
         client = self.session.get_client(client_id)
         run_async(
@@ -972,6 +1009,7 @@ class LOLLMSWebUI(LOLLMSElfServer):
         if message_type == MSG_TYPE.MSG_TYPE_NEW_MESSAGE:
             self.nb_received_tokens = 0
             self.start_time = datetime.now()
+            self.update_message(client_id, "Generating ...", {"status":True}, msg_type=MSG_TYPE.MSG_TYPE_STEP_END)
             self.new_message(
                                     client_id, 
                                     self.personality.name if personality is None else personality.name, 
