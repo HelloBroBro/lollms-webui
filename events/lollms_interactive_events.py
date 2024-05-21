@@ -82,8 +82,9 @@ def add_events(sio:socketio):
                                                 channels=1, 
                                                 buffer_size=10, 
                                                 model=lollmsElfServer.config.whisper_model, 
-                                                snd_device=None, 
-                                                logs_folder="logs", 
+                                                snd_input_device=lollmsElfServer.config.stt_input_device, 
+                                                snd_output_device=lollmsElfServer.config.tts_output_device, 
+                                                logs_folder=lollmsElfServer.rec_output_folder, 
                                                 voice=None, 
                                                 block_while_talking=True, 
                                                 context_size=4096

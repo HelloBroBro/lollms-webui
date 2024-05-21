@@ -487,8 +487,9 @@ def start_recording(data:Identification):
                                                 channels=1, 
                                                 buffer_size=10, 
                                                 model=lollmsElfServer.config.whisper_model,
-                                                snd_device=None, 
-                                                logs_folder="logs", 
+                                                snd_input_device=lollmsElfServer.config.stt_input_device, 
+                                                snd_output_device=lollmsElfServer.config.tts_output_device, 
+                                                logs_folder=lollmsElfServer.rec_output_folder, 
                                                 voice=None, 
                                                 block_while_talking=True, 
                                                 context_size=4096
@@ -526,6 +527,6 @@ def stop_recording(data:Identification):
     #     preprocessed_text= add_period(ai_text)
     #     voice_file =  [v for v in voices_folder.iterdir() if v.stem==voice and v.suffix==".wav"]
 
-    #     lollmsElfServer.tts.tts_to_audio(preprocessed_text, voice_file[0].name, language=language)
+    #     lollmsElfServer.tts.tts_audio(preprocessed_text, voice_file[0].name, language=language)
     return text
 

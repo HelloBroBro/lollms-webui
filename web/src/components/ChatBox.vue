@@ -178,7 +178,7 @@
                                 </div>    
                                 <div class="w-fit group relative" >
                                     <!-- :onShowPersList="onShowPersListFun" -->
-                                    <div class= "fixed w-[500px] -bottom-[150px] group absolute group-hover:opacity-100 transform group-hover:translate-y-[-200px] group-hover:translate-x-[0px] transition-all duration-300">
+                                    <div class= "fixed w-[1000px] -bottom-[150px] group absolute group-hover:opacity-100 transform group-hover:translate-y-[-200px] group-hover:translate-x-[0px] transition-all duration-300">
                                         <div class="w-fit flex-wrap flex">
                                         <div class="w-fit h-fit "
                                             v-for="(item, index) in mountedPersonalities" :key="index + '-' + item.name"
@@ -631,9 +631,11 @@ export default {
                 console.log("after")
                 const res = await axios.post('/remount_personality', obj);
                 console.log("Remounting personality executed:",res)
+                
 
                 if (res) {
                     console.log("Remounting personality res")
+                    this.$store.state.toast.showToast("Personality remounted", 4, true)
 
                     return res.data
 
@@ -994,6 +996,7 @@ export default {
         handleOnTalk(pers){
             console.log("talking")
             this.showPersonalities=false
+            this.$store.state.toast.showToast(`Personality ${pers.name} is Talking`, 4, true)
             this.onTalk(pers)
         },
                             
