@@ -1219,6 +1219,123 @@
 
                         </table>                    
                     </Card>
+                    <Card title="Full Audio settings" :is_subcard="true" class="pb-2  m-2">
+                        <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_listening_threshold" class="text-sm font-bold" style="margin-right: 1rem;" title="Listening threshold">Listening threshold:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_listening_threshold"
+                                required
+                                v-model="configFile.stt_listening_threshold"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_silence_duration" class="text-sm font-bold" style="margin-right: 1rem;" title="Scilence duration">Scelence duration (s):</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_silence_duration"
+                                required
+                                v-model="configFile.stt_silence_duration"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_sound_threshold_percentage" class="text-sm font-bold" style="margin-right: 1rem;" title="stt_sound_threshold_percentage">Minimum sound percentage ins recorded segment:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_sound_threshold_percentage"
+                                required
+                                v-model="configFile.stt_sound_threshold_percentage"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_gain" class="text-sm font-bold" style="margin-right: 1rem;" title="STT Gain">Volume amplification:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_gain"
+                                required
+                                v-model="configFile.stt_gain"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_rate" class="text-sm font-bold" style="margin-right: 1rem;" title="Audio Rate">audio rate:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_rate"
+                                required
+                                v-model="configFile.stt_rate"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_channels" class="text-sm font-bold" style="margin-right: 1rem;" title="number of channels">number of channels:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_channels"
+                                required
+                                v-model="configFile.stt_channels"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="stt_buffer_size" class="text-sm font-bold" style="margin-right: 1rem;" title="Buffer size">Buffer size:</label>
+                            </td>
+                            <td style="width: 100%;">
+                                <input
+                                type="number"
+                                step="1"
+                                id="stt_buffer_size"
+                                required
+                                v-model="configFile.stt_buffer_size"
+                                @change="settingsChanged=true"
+                                class="w-full w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>
+
+                        </table>                    
+                    </Card>
                     <Card title="Audio devices settings" :is_subcard="true" class="pb-2  m-2">
                         <table class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <tr>
@@ -3472,7 +3589,9 @@ export default {
             },
             defaultModelImgPlaceholder:defaultModelImgPlaceholder,
             snd_input_devices: [],
+            snd_input_devices_indexes: [],
             snd_output_devices: [],
+            snd_output_devices_indexes: [],
             voices: [],
             voice_languages:{
                             "Arabic": "ar",
@@ -5742,6 +5861,7 @@ export default {
             console.log("Loading input devices list")
             const response = await axios.get("/get_snd_input_devices")
             this.snd_input_devices = response.data["device_names"]
+            this.snd_input_devices_indexes = response.data["device_indexes"]
         }
         catch{
             console.log("Couldin't list input devices")
@@ -5750,6 +5870,7 @@ export default {
             console.log("Loading output devices list")
             const response = await axios.get("/get_snd_output_devices")
             this.snd_output_devices = response.data["device_names"]
+            this.snd_output_devices_indexes = response.data["device_indexes"]
         }
         catch{
             console.log("Couldin't list output devices")
