@@ -413,7 +413,7 @@ async def open_discussion_folder(request: DiscussionFolderRequest):
 
 class PersonalityFolderRequest(BaseModel):
     client_id: str = Field(...)
-    personality_folder: int = Field(...)
+    personality_folder: str = Field(...)
 
 @router.post("/open_personality_folder")
 async def open_personality_folder(request: PersonalityFolderRequest):
@@ -467,6 +467,15 @@ def start_recording(data:Identification):
 
     if lollmsElfServer.config.host!="localhost" and lollmsElfServer.config.host!="127.0.0.1":
         return {"status":False,"error":"Start recording is blocked when the server is exposed outside for very obvious reasons!"}
+
+    lollmsElfServer.info("Starting audio capture")
+    if not lollmsElfServer.tts or not lollmsElfServer.stt:
+        lollmsElfServer.InfoMessage("TTS or STT are not configured.\nPlease go to settings and configure them first")
+        return  {"status":False,"error":"TTS or STT not configured"}
+
+    if not lollmsElfServer.tts.ready or not lollmsElfServer.stt.ready:
+        lollmsElfServer.InfoMessage("TTS is not ready yet.\nPlease wait")
+        return  {"status":False,"error":"TTS not ready"}
 
     lollmsElfServer.info("Starting audio capture")
     try:
