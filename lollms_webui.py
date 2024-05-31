@@ -72,7 +72,7 @@ def terminate_thread(thread):
         else:
             ASCIIColors.yellow("Canceled successfully")# The current version of the webui
 
-lollms_webui_version="9.8 (γ)"
+lollms_webui_version="9.8 (δ)"
 
 
 
@@ -225,7 +225,8 @@ class LOLLMSWebUI(LOLLMSElfServer):
                 if self.session.get_client(sid).processing:
                     self.session.get_client(sid).schedule_for_deletion=True
                 else:
-                   self.session.remove_client(sid, sid)
+                    # Clients are now kept forever
+                    pass# self.session.remove_client(sid, sid)
             except Exception as ex:
                 pass
             
@@ -961,7 +962,8 @@ class LOLLMSWebUI(LOLLMSElfServer):
         if not client.discussion:
             return
         #fix halucination
-        client.generated_text=client.generated_text.split(f"{start_header_id_template}")[0]
+        if len(client.generated_text)>0 and len(start_header_id_template)>0:
+            client.generated_text=client.generated_text.split(f"{start_header_id_template}")[0]
         # Send final message
         client.discussion.current_message.finished_generating_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
@@ -1343,8 +1345,9 @@ class LOLLMSWebUI(LOLLMSElfServer):
             self.close_message(client_id)
 
             client.processing=False
-            if client.schedule_for_deletion:
-                self.session.remove_client(client.client_id, client.client_id)
+            # Clients are now kept forever
+            #if client.schedule_for_deletion:
+            #    self.session.remove_client(client.client_id, client.client_id)
 
             ASCIIColors.success(f" ╔══════════════════════════════════════════════════╗ ")
             ASCIIColors.success(f" ║                        Done                      ║ ")
