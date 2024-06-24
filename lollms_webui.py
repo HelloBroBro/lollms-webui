@@ -72,7 +72,7 @@ def terminate_thread(thread):
         else:
             ASCIIColors.yellow("Canceled successfully")# The current version of the webui
 
-lollms_webui_version="9.9 (Alpha)"
+lollms_webui_version="9.9 (Beta)"
 
 
 
@@ -1244,9 +1244,6 @@ class LOLLMSWebUI(LOLLMSElfServer):
         print(f"Received message : {message.content}")
         if client.discussion:
             try:
-                if not self.model:
-                    self.error("No model selected. Please make sure you select a model before starting generation", client_id=client_id)
-                    return          
                 # First we need to send the new message ID to the client
                 if is_continue:
                     client.discussion.load_message(message_id)
