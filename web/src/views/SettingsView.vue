@@ -338,6 +338,40 @@
                                         </tr>
                                         <tr>
                                         <td style="min-width: 200px;">
+                                            <label for="debug_show_final_full_prompt" class="text-sm font-bold" style="margin-right: 1rem;">Show final full prompt in console:</label>
+                                        </td>
+                                        <td>
+                                            <div class="flex flex-row">
+                                                <input
+                                            type="checkbox"
+                                            id="debug_show_final_full_prompt"
+                                            required
+                                            v-model="configFile.debug_show_final_full_prompt"
+                                            @change="settingsChanged=true"
+                                            class="m-2 h-50 w-50 py-1 border border-gray-300 rounded  dark:bg-gray-600 "
+                                            >
+                                            </div>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td style="min-width: 200px;">
+                                            <label for="debug_show_chunks" class="text-sm font-bold" style="margin-right: 1rem;">Show chunks in console:</label>
+                                        </td>
+                                        <td>
+                                            <div class="flex flex-row">
+                                                <input
+                                            type="checkbox"
+                                            id="debug_show_chunks"
+                                            required
+                                            v-model="configFile.debug_show_chunks"
+                                            @change="settingsChanged=true"
+                                            class="m-2 h-50 w-50 py-1 border border-gray-300 rounded  dark:bg-gray-600 "
+                                            >
+                                            </div>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td style="min-width: 200px;">
                                             <label for="debug_log_file_path" class="text-sm font-bold" style="margin-right: 1rem;">Debug file path:</label>
                                         </td>
                                         <td>
@@ -1008,13 +1042,13 @@
                                     <option value="bert-base-nli-mean-tokens">bert-base-nli-mean-tokens</option>
                                 </select>
                             </td>
-                        </tr>                        
-                        <tr>
+                            </tr>                        
+                            <tr>
                             <td style="min-width: 200px;">
                                 <label for="rag_chunk_size" class="text-sm font-bold" style="margin-right: 1rem;">RAG chunk size:</label>
                             </td>
                             <td>
-                                <input id="rag_chunk_size" v-model="configFile.data_vectorization_chunk_size"
+                                <input id="rag_chunk_size" v-model="configFile.rag_chunk_size"
                                 @change="settingsChanged=true"
                                 type="range" min="2" max="64000" step="1"
                                 class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
@@ -1025,13 +1059,31 @@
                                 class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
                                 >
                             </td>
-                            </tr>                                          
+                            </tr> 
+                            <tr>
+                            <td style="min-width: 200px;">
+                                <label for="rag_overlap" class="text-sm font-bold" style="margin-right: 1rem;">RAG overlap size:</label>
+                            </td>
+                            <td>
+                                <input id="rag_overlap" v-model="configFile.rag_overlap"
+                                @change="settingsChanged=true"
+                                type="range" min="0" max="64000" step="1"
+                                class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
+
+                                <input v-model="configFile.rag_overlap"
+                                type="number"
+                                @change="settingsChanged=true"
+                                class="w-full mt-1 px-2 py-1 border border-gray-300 rounded  dark:bg-gray-600"
+                                >
+                            </td>
+                            </tr>                                  
+                                                                
                             <tr>
                             <td style="min-width: 200px;">
                                 <label for="rag_n_chunks" class="text-sm font-bold" style="margin-right: 1rem;">RAG number of chunks:</label>
                             </td>
                             <td>
-                                <input id="rag_n_chunks" v-model="configFile.data_vectorization_chunk_size"
+                                <input id="rag_n_chunks" v-model="configFile.rag_n_chunks"
                                 @change="settingsChanged=true"
                                 type="range" min="2" max="64000" step="1"
                                 class="flex-none h-2 mt-14 mb-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700  focus:ring-blue-500 focus:border-blue-500  dark:border-gray-600 dark:placeholder-gray-400  dark:focus:ring-blue-500 dark:focus:border-blue-500">
