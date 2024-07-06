@@ -30,12 +30,23 @@
 
   
     </transition>
-    <button v-if="isReady" @click="togglePanel" class="absolute top-0 left-0 z-50 p-2 m-2 bg-white rounded-full shadow-md  bg-bg-light-tone dark:bg-bg-dark-tone hover:bg-primary-light dark:hover:bg-primary">
-                    <div v-show="panelCollapsed" ><i data-feather='chevron-right'></i></div>
-                    <div v-show="!panelCollapsed" ><i data-feather='chevron-left'></i></div>
-    </button>        
+    <button v-if="isReady" @click="togglePanel" class="absolute top-2 left-2 p-3 bg-white bg-opacity-10 rounded-full cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 animate-pulse shadow-lg hover:shadow-xl group">
+                    <div v-show="leftPanelCollapsed" ><i data-feather='chevron-right'></i></div>
+                    <div v-show="!leftPanelCollapsed" ><i data-feather='chevron-left'></i></div>
+    </button>
+    <!-- Robot SVG -->
+    <button v-if="isReady" @click.stop="triggerRobotAction()" class="absolute top-2 right-2 p-3 bg-white bg-opacity-10 rounded-full cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 animate-pulse shadow-lg hover:shadow-xl group">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-blue-500 transition-colors duration-300 group-hover:text-yellow-400">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <circle cx="12" cy="5" r="2"></circle>
+        <path d="M12 7v4"></path>
+        <line x1="8" y1="16" x2="8" y2="16"></line>
+        <line x1="16" y1="16" x2="16" y2="16"></line>
+    </svg>
+    </button>
+       
     <transition name="slide-right">
-    <div  v-if="showPanel"
+    <div  v-if="showLeftPanel"
         class="relative flex flex-col no-scrollbar shadow-lg min-w-[24rem] max-w-[24rem] bg-bg-light-tone dark:bg-bg-dark-tone"
         >
         <!-- LEFT SIDE PANEL -->
@@ -238,7 +249,7 @@
         </div>
     </div>
     </transition>
-        <div v-if="isReady" class="relative flex flex-col flex-grow w-full" >
+        <div v-if="isReady" class="relative flex flex-col flex-grow" >
             <div id="messages-list"
                 class="w-full z-0 flex flex-col  flex-grow  overflow-y-auto scrollbar-thin scrollbar-track-bg-light-tone scrollbar-thumb-bg-light-tone-panel hover:scrollbar-thumb-primary dark:scrollbar-track-bg-dark-tone dark:scrollbar-thumb-bg-dark-tone-panel dark:hover:scrollbar-thumb-primary active:scrollbar-thumb-secondary"
                 :class="isDragOverChat ? 'pointer-events-none' : ''">
@@ -287,6 +298,15 @@
                 </ChatBox>
             </div>        
         </div>
+    <transition name="slide-left">
+    <div  v-if="showRightPanel"
+        class="relative flex flex-col no-scrollbar shadow-lg w-1/2 bg-bg-light-tone dark:bg-bg-dark-tone h-full"
+        >
+        <!-- RIGHT SIDE PANEL -->
+         <!--  <div v-html="lastMessageHtml"></div> --> 
+        <div ref="isolatedContent" class="h-full"></div>
+    </div>
+    </transition>
     <ChoiceDialog reference="database_selector" class="z-20"
       :show="database_selectorDialogVisible"
       :choices="databases"
@@ -305,7 +325,13 @@
 
 <style scoped>
 
-
+@keyframes custom-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+    50% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+  }
+.animate-pulse {
+animation: custom-pulse 2s infinite;
+}
 
 .slide-right-enter-active {
   transition: transform 0.3s ease;
@@ -318,6 +344,19 @@
 .slide-right-enter,
 .slide-right-leave-to {
   transform: translateX(-100%);
+}
+
+.slide-left-enter-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-left-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-left-enter,
+.slide-left-leave-to {
+  transform: translateX(100%);
 }
 
 .fade-and-fly-enter-active {
@@ -381,6 +420,7 @@ import memory_icon from "../assets/memory_icon.svg"
 import active_skills from "../assets/active.svg"
 import inactive_skills from "../assets/inactive.svg"
 import skillsRegistry from "../assets/registry.svg"
+import robot from "../assets/robot.svg"
 import { mapState } from 'vuex';
 
 export default {
@@ -389,10 +429,74 @@ export default {
     
     data() {
         return {
+            lastMessageHtml:"",
+            defaultMessageHtml: `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Default Render Panel</title>
+            <style>
+                body, html {
+                    margin: 0;
+                    padding: 0;
+                    height: 100%;
+                    font-family: Arial, sans-serif;
+                    background-color: #f0f0f0;
+                }
+                .container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+                .message {
+                    text-align: center;
+                    padding: 30px;
+                    background-color: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                    max-width: 600px;
+                    width: 100%;
+                }
+                h1 {
+                    color: #2c3e50;
+                    margin-bottom: 20px;
+                    font-size: 28px;
+                }
+                p {
+                    color: #34495e;
+                    margin: 0 0 15px;
+                    line-height: 1.6;
+                }
+                .highlight {
+                    color: #e74c3c;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="message">
+                    <h1>Welcome to the Interactive Render Panel</h1>
+                    <p>This space is designed to bring your ideas to life! Currently, it's empty because no HTML has been generated yet.</p>
+                    <p>To see something amazing here, try asking the AI to <span class="highlight">create a specific web component or application</span>. For example:</p>
+                    <p>"Create a responsive image gallery" or "Build a simple todo list app"</p>
+                    <p>Once you request a web component, the AI will generate the necessary HTML, CSS, and JavaScript, and it will be rendered right here in this panel!</p>
+                </div>
+            </div>
+        </body>
+        </html>       
+            `,
             memory_icon: memory_icon,
             active_skills:active_skills,
             inactive_skills:inactive_skills,
             skillsRegistry:skillsRegistry,
+            robot:robot,
             posts_headers : {
                 'accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -458,15 +562,79 @@ export default {
             database_selectorDialogVisible:false,
             isDragOverDiscussion: false,
             isDragOverChat: false,
-            panelCollapsed: false, // left panel collapse
+            leftPanelCollapsed: false, // left panel collapse
+            rightPanelCollapsed: true, // right panel
             isOpen: false,
             discussion_id: 0,
         }
     },
-    methods: {
+    methods: {      
+        extractHtml() {
+            console.log("Extracting html")
+            if (this.discussionArr.length > 0) {
+                const lastMessage = this.discussionArr[this.discussionArr.length - 1].content;
+                const startTag = '```html';
+                const endTag = '```';
+                console.log("lastMessage")
+                console.log(lastMessage)
+                let startIndex = lastMessage.indexOf(startTag);
+                console.log(startIndex)
+                if (startIndex === -1) {
+                    this.lastMessageHtml = this.defaultMessageHtml;
+                    this.renderIsolatedContent();
+                    return this.defaultMessageHtml;
+                }
+                
+                startIndex += startTag.length;
+                let endIndex = lastMessage.indexOf(endTag, startIndex);
+                console.log(endIndex)
+                
+                if (endIndex === -1) {
+                    this.lastMessageHtml = lastMessage.slice(startIndex).trim();
+                } else {
+                    this.lastMessageHtml = lastMessage.slice(startIndex, endIndex).trim();
+                }
+            } else {
+                this.lastMessageHtml = this.defaultMessageHtml;
+            }
+            console.log("this.lastMessageHtml")
+            console.log(this.lastMessageHtml)
+            this.renderIsolatedContent()
+        },
+        renderIsolatedContent() {
+            const iframe = document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%'; // Adjust as needed
+            console.log("this.$refs.isolatedContent")
+            console.log(this.$refs.isolatedContent)
+            if (this.$refs.isolatedContent){
+                this.$refs.isolatedContent.innerHTML = '';
+                this.$refs.isolatedContent.appendChild(iframe);
+                
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(`
+                    ${this.lastMessageHtml}
+                `);
+                iframeDoc.close();
+            }
+
+        },        
+        async triggerRobotAction(){
+            this.rightPanelCollapsed = !this.rightPanelCollapsed;
+            if(!this.rightPanelCollapsed){
+                this.leftPanelCollapsed=true;
+                this.$nextTick(() => {
+                this.extractHtml()
+                });
+
+            }
+            console.log(this.rightPanelCollapsed)
+        }, 
         add_webpage(){
             console.log("addWebLink received")
-            this.$refs.web_url_input_box.showPanel();
+            this.$refs.web_url_input_box.showLeftPanel();
         },
         addWebpage(){
 
@@ -616,7 +784,10 @@ export default {
             this.$store.state.toast.showToast(text, duration, isok)
         },        
         togglePanel() {
-            this.panelCollapsed = !this.panelCollapsed;
+            this.leftPanelCollapsed = !this.leftPanelCollapsed;
+            if (!this.leftPanelCollapsed){
+                this.rightPanelCollapsed = true;
+            }
         },
         toggleDropdown() {
             this.isOpen = !this.isOpen;
@@ -682,10 +853,10 @@ export default {
                     }
                     
                     socket.off('discussion')
+                    this.extractHtml()
                 })
 
                 socket.emit('load_discussion',{"id":id});
-                console.log("here")
 
             }
         },
@@ -1337,6 +1508,7 @@ export default {
                     messageItem.started_generating_at = msgObj.started_generating_at
                     messageItem.nb_tokens = msgObj.nb_tokens
                     messageItem.finished_generating_at = msgObj.finished_generating_at
+                    this.extractHtml()
                 }
                 else if(messageItem && msgObj.message_type==this.msgTypes.MSG_TYPE_CHUNK){
                     this.isGenerating = true;
@@ -1345,6 +1517,7 @@ export default {
                     messageItem.started_generating_at = msgObj.started_generating_at
                     messageItem.nb_tokens = msgObj.nb_tokens
                     messageItem.finished_generating_at = msgObj.finished_generating_at
+                    this.extractHtml()
                 } else if (msgObj.message_type == this.msgTypes.MSG_TYPE_STEP){
                     messageItem.status_message = msgObj.content
                     messageItem.steps.push({"message":msgObj.content,"done":true, "status":true, "type": "instantanious" })
@@ -2113,8 +2286,12 @@ export default {
         SkillsLibraryViewer 
     },
     watch: {  
+        messages: {
+        handler: 'extractHtml',
+        deep: true
+        },
         progress_visibility_val(newVal) {
-            console.log("progress_visibility changed")
+            console.log("progress_visibility changed to "+ newVal)
         },
         filterTitle(newVal) {
             if (newVal == '') {
@@ -2202,11 +2379,8 @@ export default {
         UseDiscussionHistory() {
             return this.$store.state.config.activate_skills_lib;
         }, 
-        isReady:{
-            
-            get() {
+        isReady() {
                 return this.$store.state.ready;
-            },
         },
         databases(){            
             return this.$store.state.databases;
@@ -2214,12 +2388,11 @@ export default {
         client_id() {
             return socket.id
         },
-        isReady(){
-            console.log("verify ready", this.isCreated)
-            return this.isCreated
+        showLeftPanel() {
+           return this.$store.state.ready && !this.leftPanelCollapsed;
         },
-        showPanel() {
-           return this.$store.state.ready && !this.panelCollapsed;
+        showRightPanel() {
+           return this.$store.state.ready && !this.rightPanelCollapsed;
         },
         socketConnected() {
             console.log(" --- > Websocket connected")
