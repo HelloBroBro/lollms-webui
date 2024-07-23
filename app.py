@@ -7,20 +7,44 @@ This file is the entry point to the webui.
 """
 from lollms.utilities import PackageManager
 
-print("Checking ParisNeo libraries installation ... ",end="",flush=True)
+print("Checking ParisNeo libraries installation")
+expected_ascii_colors_version = "0.4.0"
+print(f"Checking ascii_colors ({expected_ascii_colors_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("ascii_colors", ):
+    PackageManager.install_or_update("ascii_colors")
+from ascii_colors import ASCIIColors
+ASCIIColors.success("OK")
 
-if not PackageManager.check_package_installed("pipmaster"):
+expected_pipmaster_version = "0.2.2"
+ASCIIColors.yellow(f"Checking pipmaster ({expected_pipmaster_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("pipmaster", expected_pipmaster_version):
     PackageManager.install_or_update("pipmaster")
+ASCIIColors.success("OK")
 
-if not PackageManager.check_package_installed("lollmsvectordb"):
+expected_lollmsvectordb_version = "0.7.6"
+ASCIIColors.yellow(f"Checking lollmsvectordb ({expected_lollmsvectordb_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("lollmsvectordb", expected_lollmsvectordb_version):
     PackageManager.install_or_update("lollmsvectordb")
+ASCIIColors.success("OK")
 
-if not PackageManager.check_package_installed("freedom_search"):
+expected_freedom_search_version = "0.1.7"
+ASCIIColors.yellow(f"Checking freedom_search ({expected_freedom_search_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("freedom_search", expected_freedom_search_version):
     PackageManager.install_or_update("freedom-search")
+ASCIIColors.success("OK")
 
-if not PackageManager.check_package_installed("scrapemaster"):
+expected_scrapemaster_version = "0.1.4"
+ASCIIColors.yellow(f"Checking scrapemaster ({expected_scrapemaster_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("scrapemaster", expected_scrapemaster_version):
     PackageManager.install_or_update("scrapemaster")
-print("OK")
+ASCIIColors.success("OK")
+ 
+expected_lollms_client_version = "0.6.2"
+ASCIIColors.yellow(f"Checking lollms_client ({expected_lollms_client_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("lollms_client", expected_lollms_client_version):
+    PackageManager.install_or_update("lollms-client")
+ASCIIColors.success("OK")
+
 
 
 from fastapi import FastAPI
