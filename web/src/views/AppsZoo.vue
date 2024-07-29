@@ -6,7 +6,7 @@
       <div
         v-for="app in combinedApps"
         :key="app.uid"
-        class="app-card border rounded-lg shadow-lg p-4 cursor-pointer hover:shadow-xl transition"
+        class="app-card border rounded-lg shadow-lg p-4 cursor-pointer hover:shadow-xl transition w-80"
         @click="handleAppClick(app)"
       >
         <img :src="app.icon" alt="App Icon" class="app-icon w-16 h-16 mx-auto mb-2 rounded-full border border-gray-300" />
@@ -14,18 +14,21 @@
         <p class="text-center text-sm text-gray-600">Author: {{ app.author }}</p>
         <p class="text-center text-sm text-gray-600">Version: {{ app.version }}</p>
         <label class="text-center text-sm text-gray-600" for="app-description">Description:</label>
-        <p id="app-description" class="text-center text-sm text-gray-600">{{ app.description }}</p>
+        <div class="description-container">
+          <p id="app-description" class="text-center text-sm text-gray-600">{{ app.description }}</p>
+        </div>
         <p class="text-center text-sm text-gray-600">AI Model: {{ app.model_name }}</p>
         <p class="text-center text-sm text-gray-600 italic">Disclaimer: {{ app.disclaimer }}</p>
         <div class="flex justify-between mt-2">
-          <button v-if="!app.installed" @click.stop="installApp(app.name)" class="bg-blue-500 text-white px-2 py-1 rounded">Install</button>
           <button v-if="app.installed" @click.stop="uninstallApp(app.name)" class="bg-red-500 text-white px-2 py-1 rounded">Uninstall</button>
+          <button v-else-if="app.existsInFolder" @click.stop="deleteApp(app.name)" class="bg-yellow-500 text-white px-2 py-1 rounded">Delete</button>
+          <button v-else @click.stop="installApp(app.name)" class="bg-blue-500 text-white px-2 py-1 rounded">Install</button>
+          <button v-if="app.installed" @click.stop="editApp(app)" class="bg-purple-500 text-white px-2 py-1 rounded">Edit</button>
         </div>
       </div>
     </div>
     <div v-if="selectedApp" class="app-render fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
       <button @click="backToZoo" class="absolute top-4 right-4 bg-gray-300 px-2 py-1 rounded">Back</button>
-      <h2 class="text-2xl font-bold mb-4">Rendering: {{ selectedApp.name }}</h2>
       <iframe v-if="appCode" :srcdoc="appCode" class="app-frame w-full h-full border-none"></iframe>
       <p v-else class="text-center text-red-500">Please install this app to view its code.</p>
     </div>
@@ -51,11 +54,11 @@ export default {
   computed: {
     combinedApps() {
       const installedAppNames = this.apps.map(app => app.name);
-      const localAppsMap = new Map(this.apps.map(app => [app.name, { ...app, installed: true }]));
+      const localAppsMap = new Map(this.apps.map(app => [app.name, { ...app, installed: true, existsInFolder: true }]));
       
       this.githubApps.forEach(app => {
         if (!localAppsMap.has(app.name)) {
-          localAppsMap.set(app.name, { ...app, installed: false });
+          localAppsMap.set(app.name, { ...app, installed: false, existsInFolder: false });
         }
       });
 
@@ -131,6 +134,35 @@ export default {
         this.fetchApps(); // Refresh the app list
       }
     },
+    async deleteApp(appName) {
+      this.loading = true;
+      try {
+        await axios.post(`/delete/${appName}`, {
+          client_id: this.$store.state.client_id,
+        });
+        this.showMessage('Deletion succeeded!', true);
+      } catch (error) {
+        this.showMessage('Deletion failed.', false);
+      } finally {
+        this.loading = false;
+        this.fetchApps(); // Refresh the app list
+      }
+    },
+    async editApp(app) {
+      this.loading = true;
+      console.log("editing app", app.name)
+      try {
+        const response = await axios.post('/open_app_in_vscode', {
+          client_id: this.$store.state.client_id,
+          app_name: app.name,
+        });
+        this.showMessage(response.data.message, true);
+      } catch (error) {
+        this.showMessage('Failed to open folder in VSCode.', false);
+      } finally {
+        this.loading = false;
+      }
+    },
     showMessage(msg, success) {
       this.message = msg;
       this.successMessage = success;
@@ -157,6 +189,9 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   width: 100%;
+}
+.app-card {
+  width: 80%; /* Increased width */
 }
 .app-icon {
   border-radius: 50%; /* Rounded edges */
@@ -186,6 +221,10 @@ export default {
 .message.error {
   background-color: #fed7d7; /* Red background */
   color: #c53030; /* Dark red text */
+}
+.description-container {
+  max-height: 50px; /* Limit height */
+  overflow-y: auto; /* Enable vertical scroll */
 }
 @keyframes fadeIn {
   from {
