@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from fastapi.responses import FileResponse
 from lollms_webui import LOLLMSWebUI
@@ -14,7 +15,7 @@ import os
 import subprocess
 import yaml
 import uuid
-
+import platform
 
 router = APIRouter()
 lollmsElfServer: LOLLMSWebUI = LOLLMSWebUI.get_instance()
@@ -23,15 +24,18 @@ class AuthRequest(BaseModel):
     client_id: str
 
 class AppInfo:
-    def __init__(self, uid: str, name: str, icon: str, description: str, author:str, version:str, model_name:str, disclaimer:str):
+    def __init__(self, uid: str, name: str, folder_name: str, icon: str, category:str, description: str, author:str, version:str, model_name:str, disclaimer:str, installed: bool):
         self.uid = uid
         self.name = name
+        self.folder_name = folder_name
         self.icon = icon
+        self.category = category
         self.description = description
         self.author = author
         self.version = version
         self.model_name = model_name
         self.disclaimer = disclaimer
+        self.installed = installed
 
 @router.get("/apps")
 async def list_apps():
@@ -51,26 +55,59 @@ async def list_apps():
             if description_path.exists():
                 with open(description_path, 'r') as file:
                     data = yaml.safe_load(file)
+                    application_name = data.get('name', app_name.name)
+                    category = data.get('category', 'generic')
                     description = data.get('description', '')
                     author = data.get('author', '')
                     version = data.get('version', '')
                     model_name = data.get('model_name', '')
                     disclaimer = data.get('disclaimer', 'No disclaimer provided.')
+                    installed = True
+            else:
+                installed = False
                     
             if icon_path.exists():
                 uid = str(uuid.uuid4())
                 apps.append(AppInfo(
                     uid=uid,
-                    name=app_name.name,
+                    name=application_name,
+                    folder_name = app_name.name,
                     icon=f"/apps/{app_name.name}/icon",
+                    category=category,
                     description=description,
                     author=author,
                     version=version,
                     model_name=model_name,
-                    disclaimer=disclaimer
+                    disclaimer=disclaimer,
+                    installed=installed
                 ))
     
     return apps
+
+
+class ShowAppsFolderRequest(BaseModel):
+    client_id: str = Field(...)
+
+@router.post("/show_apps_folder")
+async def open_folder_in_vscode(request: ShowAppsFolderRequest):
+    check_access(lollmsElfServer, request.client_id)
+    # Get the current operating system
+    current_os = platform.system()
+
+    try:
+        if current_os == "Windows":
+            # For Windows
+            subprocess.run(['explorer', lollmsElfServer.lollms_paths.apps_zoo_path])
+        elif current_os == "Darwin":
+            # For macOS
+            subprocess.run(['open', lollmsElfServer.lollms_paths.apps_zoo_path])
+        elif current_os == "Linux":
+            # For Linux
+            subprocess.run(['xdg-open', lollmsElfServer.lollms_paths.apps_zoo_path])
+        else:
+            print("Unsupported operating system.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 class OpenFolderRequest(BaseModel):
     client_id: str = Field(...)
@@ -175,17 +212,43 @@ def load_apps_data():
                     description_data = yaml.safe_load(file)
                     apps.append(AppInfo(
                         uid=str(uuid.uuid4()),
-                        name=item,
+                        name=description_data.get("name",item),
+                        folder_name=item,
                         icon=icon_url,
+                        category=description_data.get('category', 'generic'),
                         description=description_data.get('description', ''),
                         author=description_data.get('author', ''),
                         version=description_data.get('version', ''),
                         model_name=description_data.get('model_name', ''),
-                        disclaimer=description_data.get('disclaimer', 'No disclaimer provided.')
+                        disclaimer=description_data.get('disclaimer', 'No disclaimer provided.'),
+                        installed=True
                     ))
     return apps
 
+@router.get("/lollms_js", response_class=PlainTextResponse)
+async def lollms_js():
+    # Define the path to the JSON file using pathlib
+    file_path = Path(__file__).parent / "lollms_client_js.js"
+    
+    # Read the JSON file
+    with file_path.open('r') as file:
+        data = file.read()
+    return data
 
+@router.get("/template")
+async def lollms_js():
+    return {
+        "start_header_id_template": lollmsElfServer.config.start_header_id_template,
+        "end_header_id_template": lollmsElfServer.config.end_header_id_template,
+        "separator_template": lollmsElfServer.config.separator_template,
+        "start_user_header_id_template": lollmsElfServer.config.start_user_header_id_template,
+        "end_user_header_id_template": lollmsElfServer.config.end_user_header_id_template,
+        "end_user_message_id_template": lollmsElfServer.config.end_user_message_id_template,
+        "start_ai_header_id_template": lollmsElfServer.config.start_ai_header_id_template,
+        "end_ai_header_id_template": lollmsElfServer.config.end_ai_header_id_template,
+        "end_ai_message_id_template": lollmsElfServer.config.end_ai_message_id_template,
+        "system_message_template": lollmsElfServer.config.system_message_template
+    }
 
 @router.get("/github/apps")
 async def fetch_github_apps():
