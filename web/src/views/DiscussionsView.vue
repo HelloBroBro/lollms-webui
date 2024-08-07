@@ -58,12 +58,12 @@
        
     <transition name="slide-right">
     <div  v-if="showLeftPanel"
-        class="relative flex flex-col no-scrollbar shadow-lg min-w-[24rem] max-w-[24rem] bg-bg-light-tone dark:bg-bg-dark-tone"
+        class="relative flex flex-col no-scrollbar shadow-lg min-w-[24rem] max-w-[24rem] unicolor-panels-color dark:bg-bg-dark-tone"
         >
         <!-- LEFT SIDE PANEL -->
         <div id="leftPanel" class="flex flex-col flex-grow overflow-y-scroll no-scrollbar "
             @dragover.stop.prevent="setDropZoneDiscussion()">
-            <div class="text-light-text-panel dark:text-dark-text-panel bg-bg-light-panel sticky z-10 top-0 dark:bg-bg-dark-tone shadow-md ">
+            <div class="text-light-text-panel dark:text-dark-text-panel panels-color sticky z-10 top-0 ">
 
                 <!-- CONTROL PANEL -->
                 <div class="flex-row p-4  flex items-center gap-3 flex-0">
@@ -229,9 +229,9 @@
             </div>
             <div class="relative flex flex-row flex-grow mb-10 z-0  w-full">
                 <!-- DISCUSSION LIST -->
-                <div class="mx-4 flex flex-col flex-grow  w-full " :class="isDragOverDiscussion ? 'pointer-events-none' : ''">
+                <div class="mx-0 flex flex-col flex-grow  w-full " :class="isDragOverDiscussion ? 'pointer-events-none' : ''">
                     <div id="dis-list" :class="filterInProgress ? 'opacity-20 pointer-events-none' : ''"
-                        class="flex flex-col flex-grow  w-full">
+                        class="flex flex-col flex-grow w-full pb-80">
                         <TransitionGroup v-if="list.length > 0" name="list">
                             <Discussion v-for="(item, index) in list" :key="item.id" :id="item.id" :title="item.title"
                                 :selected="currentDiscussion.id == item.id" :loading="item.loading" :isCheckbox="isCheckbox"
@@ -255,7 +255,7 @@
                 </div>
             </div>
         </div>
-        <div class="absolute h-15 bottom-0 left-0 w-full bg-bg-light-panel dark:bg-bg-dark-tone light-text-panel py-4 cursor-pointer text-light-text-panel dark:text-dark-text-panel hover:text-secondary" @click="showDatabaseSelector">
+        <div class="absolute h-15 bottom-0 left-0 w-full unicolor-panels-color light-text-panel py-4 cursor-pointer text-light-text-panel dark:text-dark-text-panel hover:text-secondary" @click="showDatabaseSelector">
             <p class="text-center font-large font-bold text-l drop-shadow-md align-middle">{{ formatted_database_name.replace("_"," ") }}</p>
         </div>
     </div>
