@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException, APIRouter, Response
+from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from fastapi.responses import FileResponse
 from lollms_webui import LOLLMSWebUI
-from pydantic import BaseModel
+from packaging import version
 from pathlib import Path
 import shutil
 import uuid
@@ -13,14 +13,32 @@ import yaml
 from lollms.security import check_access, sanitize_path
 import os
 import subprocess
-import yaml
 import uuid
 import platform
 from ascii_colors import ASCIIColors, trace_exception
 import pipmaster as pm
+import sys
+
 if not pm.is_installed("httpx"):
     pm.install("httpx")
 import httpx
+from lollms.utilities import PackageManager
+
+# Pull the repository if it already exists
+def check_lollms_models_zoo():
+    if not PackageManager.check_package_installed("zipfile"):
+        PackageManager.install_or_update("zipfile36")
+ASCIIColors.execute_with_animation("Checking zip library.", check_lollms_models_zoo)
+
+
+from pydantic import BaseModel
+from pathlib import Path
+import zipfile
+import io
+
+
+import shutil
+
 
 router = APIRouter()
 lollmsElfServer: LOLLMSWebUI = LOLLMSWebUI.get_instance()
@@ -29,7 +47,23 @@ class AuthRequest(BaseModel):
     client_id: str
 
 class AppInfo:
-    def __init__(self, uid: str, name: str, folder_name: str, icon: str, category:str, description: str, author:str, version:str, model_name:str, disclaimer:str, installed: bool):
+    def __init__(
+            self, 
+            uid: str, 
+            name: str, 
+            folder_name: str, 
+            icon: str, 
+            category:str, 
+            description: str, 
+            author:str, 
+            version:str, 
+            model_name:str, 
+            disclaimer:str, 
+            has_server:bool, 
+            is_public:bool,
+            has_update:bool,
+            installed: bool
+        ):
         self.uid = uid
         self.name = name
         self.folder_name = folder_name
@@ -40,22 +74,31 @@ class AppInfo:
         self.version = version
         self.model_name = model_name
         self.disclaimer = disclaimer
+        self.has_server = has_server
+        self.has_update = has_update
+        self.is_public = is_public
         self.installed = installed
 
 @router.get("/apps")
 async def list_apps():
     apps = []
     apps_zoo_path = lollmsElfServer.lollms_paths.apps_zoo_path
-    
+    REPO_DIR = lollmsElfServer.lollms_paths.personal_path/"apps_zoo_repo"
+    if REPO_DIR.exists():
+        remote_apps = [a.stem for a in REPO_DIR.iterdir()]
+    else:
+        remote_apps = []
     for app_name in apps_zoo_path.iterdir():
         if app_name.is_dir():
             icon_path = app_name / "icon.png"
             description_path = app_name / "description.yaml"
             description = ""
             author = ""
-            version = ""
+            current_version = ""
             model_name = ""
             disclaimer = ""
+            has_server = False
+            is_public = app_name.stem in remote_apps
             
             if description_path.exists():
                 with open(description_path, 'r') as file:
@@ -64,13 +107,29 @@ async def list_apps():
                     category = data.get('category', 'generic')
                     description = data.get('description', '')
                     author = data.get('author', '')
-                    version = data.get('version', '')
+                    current_version = data.get('version', '')
                     model_name = data.get('model_name', '')
                     disclaimer = data.get('disclaimer', 'No disclaimer provided.')
+                    has_server = data.get('has_server', False)
                     installed = True
             else:
                 installed = False
-                    
+
+            if is_public:
+                try:
+                    with (REPO_DIR / app_name.stem / "description.yaml").open("r") as file:
+                        # Parse the YAML content
+                        yaml_content = yaml.safe_load(file)
+                        repo_version = yaml_content.get("version", "0")
+                        
+                        # Compare versions using packaging.version
+                        has_update = version.parse(str(repo_version)) > version.parse(str(current_version))
+                except (yaml.YAMLError, FileNotFoundError) as e:
+                    print(f"Error reading or parsing YAML file: {e}")
+                    has_update = False
+            else:
+                has_update = False
+
             if icon_path.exists():
                 uid = str(uuid.uuid4())
                 apps.append(AppInfo(
@@ -81,9 +140,12 @@ async def list_apps():
                     category=category,
                     description=description,
                     author=author,
-                    version=version,
+                    version=current_version,
                     model_name=model_name,
                     disclaimer=disclaimer,
+                    has_server=has_server,
+                    is_public=is_public,
+                    has_update=has_update,
                     installed=installed
                 ))
     
@@ -136,13 +198,6 @@ async def open_folder_in_vscode(request: OpenFolderRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to open folder: {str(e)}")
 
-@router.post("/apps/{app_name}/code")
-async def get_app_code(app_name: str, auth: AuthRequest):
-    check_access(lollmsElfServer, auth.client_id)
-    app_path = lollmsElfServer.lollms_paths.apps_zoo_path / app_name / "index.html"
-    if not app_path.exists():
-        raise HTTPException(status_code=404, detail="App not found")
-    return FileResponse(app_path)
 
 @router.get("/apps/{app_name}/{file}")
 async def get_app_file(app_name: str, file: str):
@@ -152,6 +207,96 @@ async def get_app_file(app_name: str, file: str):
         raise HTTPException(status_code=404, detail="App file not found")
     return FileResponse(app_path)
 
+class AppNameInput(BaseModel):
+    client_id: str
+    app_name: str
+
+
+@router.post("/download_app")
+async def download_app(input_data: AppNameInput):
+    check_access(lollmsElfServer, input_data.client_id)
+    app_name = sanitize_path(input_data.app_name)
+    app_path = lollmsElfServer.lollms_paths.apps_zoo_path / app_name
+
+    if not app_path.exists():
+        raise HTTPException(status_code=404, detail="App not found")
+
+    # Create a BytesIO object to store the zip file
+    zip_buffer = io.BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for file in app_path.rglob('*'):
+            if file.is_file() and '.git' not in file.parts:
+                relative_path = file.relative_to(app_path)
+                zip_file.write(file, arcname=relative_path)
+
+    # Seek to the beginning of the BytesIO object
+    zip_buffer.seek(0)
+
+    # Create a StreamingResponse to return the zip file
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={app_name}.zip"}
+    )
+
+@router.post("/upload_app")
+async def upload_app(client_id: str, file: UploadFile = File(...)):
+    check_access(lollmsElfServer, client_id)
+    
+    # Create a temporary directory to extract the zip file
+    temp_dir = lollmsElfServer.lollms_paths.personal_path / "temp"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    try:
+        # Save the uploaded file temporarily
+        temp_file = temp_dir / file.filename
+        with open(temp_file, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Extract the zip file
+        with zipfile.ZipFile(temp_file, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        # Check for required files
+        required_files = ['index.html', 'description.yaml', 'icon.png']
+        for required_file in required_files:
+            if not os.path.exists(os.path.join(temp_dir, required_file)):
+                raise HTTPException(status_code=400, detail=f"Missing required file: {required_file}")
+
+        # Read the description.yaml file
+        with open(os.path.join(temp_dir, 'description.yaml'), 'r') as yaml_file:
+            description = yaml.safe_load(yaml_file)
+
+        # Get the app name from the description
+        app_name = description.get('name')
+        if not app_name:
+            raise HTTPException(status_code=400, detail="App name not found in description.yaml")
+
+        # Create the app directory
+        app_dir = lollmsElfServer.lollms_paths.apps_zoo_path / app_name
+        if os.path.exists(app_dir):
+            raise HTTPException(status_code=400, detail="An app with this name already exists")
+
+        # Move the extracted files to the app directory
+        shutil.move(temp_dir, app_dir)
+
+        return JSONResponse(content={"message": f"App '{app_name}' uploaded successfully"}, status_code=200)
+
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Invalid zip file")
+    except yaml.YAMLError:
+        raise HTTPException(status_code=400, detail="Invalid YAML in description.yaml")
+    finally:
+        # Clean up temporary files
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
+
+import shutil
+from pathlib import Path
 
 @router.post("/install/{app_name}")
 async def install_app(app_name: str, auth: AuthRequest):
@@ -159,24 +304,24 @@ async def install_app(app_name: str, auth: AuthRequest):
     REPO_DIR = lollmsElfServer.lollms_paths.personal_path/"apps_zoo_repo"
     
     # Create the app directory
-    app_path = lollmsElfServer.lollms_paths.apps_zoo_path/app_name  # Adjust the path as needed
+    app_path = lollmsElfServer.lollms_paths.apps_zoo_path/app_name
     os.makedirs(app_path, exist_ok=True)
 
-    # Define the local paths for the files to copy
-    files_to_copy = {
-        "icon.png": REPO_DIR/app_name/"icon.png",
-        "description.yaml": REPO_DIR/app_name/"description.yaml",
-        "index.html": REPO_DIR/app_name/"index.html"
-    }
+    source_dir = REPO_DIR/app_name
+    
+    if not source_dir.exists():
+        raise HTTPException(status_code=404, detail=f"App {app_name} not found in the local repository")
 
-    # Copy each file from the local repo
-    for file_name, local_path in files_to_copy.items():
-        if local_path.exists():
-            with open(local_path, 'rb') as src_file:
-                with open(app_path/file_name, 'wb') as dest_file:
-                    dest_file.write(src_file.read())
+    # Define directories to exclude
+    exclude_dirs = {'.vscode', '.git'}
+
+    # Copy all files and directories, excluding the ones in exclude_dirs
+    for item in source_dir.glob('*'):
+        if item.is_dir():
+            if item.name not in exclude_dirs:
+                shutil.copytree(item, app_path/item.name, dirs_exist_ok=True)
         else:
-            raise HTTPException(status_code=404, detail=f"{file_name} not found in the local repository")
+            shutil.copy2(item, app_path)
 
     return {"message": f"App {app_name} installed successfully."}
 
@@ -246,38 +391,48 @@ def load_apps_data():
                         version=description_data.get('version', ''),
                         model_name=description_data.get('model_name', ''),
                         disclaimer=description_data.get('disclaimer', 'No disclaimer provided.'),
+                        has_server=description_data.get('has_server', False),
+                        is_public=True,
+                        has_update=False,
                         installed=True
                     ))
     return apps
 
-@router.get("/lollms_js", response_class=PlainTextResponse)
-async def lollms_js():
-    # Define the path to the JSON file using pathlib
-    file_path = Path(__file__).parent / "lollms_client_js.js"
-    
-    # Read the JSON file
-    with file_path.open('r') as file:
-        data = file.read()
-    return data
 
-@router.get("/lollms_markdown_renderer", response_class=PlainTextResponse)
-async def lollms_markdown_renderer():
-    # Define the path to the JSON file using pathlib
-    file_path = Path(__file__).parent / "lollms_markdown_renderer.js"
-    
-    # Read the JSON file
-    with file_path.open('r') as file:
-        data = file.read()
-    return data
+@router.get("/lollms_assets/{asset_type}/{file_name}")
+async def lollms_assets(asset_type: str, file_name: str):
+    # Define the base path
+    base_path = Path(__file__).parent
 
-@router.get("/lollms_markdown_renderer_css")
-async def lollms_markdown_renderer_css():
-    # Define the path to the CSS file using pathlib
-    file_path = Path(__file__).parent / "lollms_markdown_renderer.css"
+    # Determine the correct directory and file extension based on asset_type
+    if asset_type == "js":
+        directory = base_path / "libraries"
+        file_extension = ".js"
+        content_type = "application/javascript"
+    elif asset_type == "css":
+        directory = base_path / "styles"
+        file_extension = ".css"
+        content_type = "text/css"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid asset type")
 
-    # Use FileResponse to serve the CSS file
-    return FileResponse(file_path, media_type="text/css")
+    # Sanitize the file name to prevent path traversal
+    safe_file_name = sanitize_path(file_name)
 
+    # Construct the full file path
+    file_path = directory / f"{safe_file_name}{file_extension}"
+
+    # Check if the file exists and is within the allowed directory
+    if not file_path.is_file() or not file_path.is_relative_to(directory):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Read and return the file content with the appropriate content type
+    try:
+        with file_path.open('r') as file:
+            content = file.read()
+        return Response(content=content, media_type=content_type)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
 
 @router.get("/template")
 async def lollms_js():
@@ -305,9 +460,54 @@ async def fetch_github_apps():
     apps = load_apps_data()
     return {"apps": apps}
 
-@router.get("/apps/{app_name}/icon")
-async def get_app_icon(app_name: str):
-    icon_path = lollmsElfServer.lollms_paths.apps_zoo_path / app_name / "icon.png"
-    if not icon_path.exists():
-        raise HTTPException(status_code=404, detail="Icon not found")
-    return FileResponse(icon_path)
+
+def install_requirements(app_path: Path):
+    requirements_file = app_path / "requirements.txt"
+    if requirements_file.exists():
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
+            print("Requirements installed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error installing requirements: {e}")
+            raise
+
+def run_server(app_path: Path):    
+    server_script = app_path / "server.py"
+    if server_script.exists():
+        try:
+            # Install requirements if they exist
+            install_requirements(app_path)
+
+            # Determine the platform and open a terminal to execute the Python code.
+            system = platform.system()
+            if system == "Windows":
+                process = subprocess.Popen(f"""start cmd /k "cd /d "{app_path}" && python "{server_script}" && pause" """, shell=True)
+            elif system == "Darwin":  # macOS
+                process = subprocess.Popen(["open", "-a", "Terminal", f'cd "{app_path}" && python "{server_script}"'], shell=True)
+            elif system == "Linux":
+                process = subprocess.Popen(["x-terminal-emulator", "-e", f'bash -c "cd \\"{app_path}\\" && python \\"{server_script}\\"; exec bash"'], shell=True)
+            else:
+                raise Exception(f"Unsupported platform: {system}")
+
+        except Exception as ex:
+            # Stop the timer.
+            ASCIIColors.error(f"Error executing Python code: {ex}")
+    else:
+        ASCIIColors.error(f"Server script not found for app: {app_path.name}")
+
+@router.post("/apps/start_server")
+async def start_app_server(request: OpenFolderRequest):
+    check_access(lollmsElfServer, request.client_id)
+    app_path = lollmsElfServer.lollms_paths.apps_zoo_path / request.app_name
+    
+    if not app_path.exists():
+        raise HTTPException(status_code=404, detail="App not found")
+    
+    server_script = app_path / "server.py"
+    if not server_script.exists():
+        raise HTTPException(status_code=404, detail="Server script not found for this app")
+    
+    # Start the server in the background
+    run_server(app_path)
+    
+    return {"status": "success", "message": f"Server for {app_path} is starting"}
