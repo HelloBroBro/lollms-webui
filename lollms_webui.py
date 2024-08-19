@@ -951,13 +951,14 @@ class LOLLMSWebUI(LOLLMSElfServer):
 
     def update_message_metadata(self, client_id, metadata):
         client = self.session.get_client(client_id)
+        md = json.dumps(metadata) if type(metadata)==dict or type(metadata)==list else metadata
         run_async(
             partial(self.sio.emit,'update_message', {
                                             "sender": self.personality.name,
                                             'id':client.discussion.current_message.id, 
-                                            'metadata': metadata if type(metadata) in [str, None] else json.dumps(metadata) if type(metadata)==dict else None,
+                                            'metadata': md,
                                             'discussion_id':client.discussion.discussion_id,
-                                            'operation_type': MSG_OPERATION_TYPE.MSG_OPERATION_TYPE_JSON_INFOS,
+                                            'operation_type': MSG_OPERATION_TYPE.MSG_OPERATION_TYPE_JSON_INFOS.value,
                                         }, to=client_id
                                 )
         )
@@ -966,16 +967,19 @@ class LOLLMSWebUI(LOLLMSElfServer):
 
     def update_message_ui(self, client_id, ui):
         client = self.session.get_client(client_id)
+
+
         run_async(
             partial(self.sio.emit,'update_message', {
                                             "sender": self.personality.name,
                                             'id':client.discussion.current_message.id, 
-                                            'ui': ui if type(ui) in [str, None] else None,
+                                            'ui': ui,
                                             'discussion_id':client.discussion.discussion_id,
-                                            'operation_type': MSG_OPERATION_TYPE.MSG_OPERATION_TYPE_UI,
+                                            'operation_type': MSG_OPERATION_TYPE.MSG_OPERATION_TYPE_UI.value,
                                         }, to=client_id
                                 )
         )
+
 
         client.discussion.update_message_ui(ui)
 
