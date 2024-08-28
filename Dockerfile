@@ -1,30 +1,46 @@
-FROM python:3.10
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
 
-WORKDIR /srv
-COPY ./requirements.txt .
+# Set the working directory in the container
+WORKDIR /app
 
-COPY ./app.py /srv/app.py
-COPY ./api /srv/api
-COPY ./static /srv/static
-COPY ./templates /srv/templates
-COPY ./web /srv/web
-COPY ./assets /srv/assets
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# TODO: this is monkey-patch for check_update() function, should be disabled in Docker
-COPY ./.git /srv/.git
+# Install Miniconda
+RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda \
+    && rm Miniconda3-latest-Linux-x86_64.sh
 
-VOLUME [ "/data" ]
+# Add Conda to PATH
+ENV PATH /opt/conda/bin:$PATH
 
-# Monkey-patch (1): because "binding_zoo" install the packets inside venv, we cannot do pip install on build time
-# Monkey-patch (2): send a "enter" keystroke to python to confirm the first launch process
-CMD ["/bin/bash", "-c", " \
-  python -m venv /data/venv; \
-  source /data/venv/bin/activate; \
-  python -m pip install --no-cache-dir -r requirements.txt --upgrade pip; \
-  echo -ne '\n' | \
-  python app.py \
-  --host 0.0.0.0 \
-  --port 9600 \
-  --discussion_db_name /data/Documents/databases/database.db \
-  --config /configs/config.yaml \
-  "]
+# Create and activate Conda environment
+RUN conda create --name lollms_env python=3.11 git pip -y
+SHELL ["conda", "run", "-n", "lollms_env", "/bin/bash", "-c"]
+
+# Clone the repository
+RUN git clone --depth 1 --recurse-submodules https://github.com/ParisNeo/lollms-webui.git \
+    && cd lollms-webui/lollms_core \
+    && pip install -e . \
+    && cd ../.. \
+    && cd lollms-webui/utilities/pipmaster \
+    && pip install -e . \
+    && cd ../..
+
+# Install project dependencies
+WORKDIR /app/lollms-webui
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose port 9600
+EXPOSE 9600
+
+# Set the default command to run the application
+CMD ["python", "app.py"]
