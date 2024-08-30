@@ -1,5 +1,5 @@
 colorama
-numpy==1.26.*
+numpy>=1.26.0
 pandas
 Pillow>=9.5.0
 pyyaml
@@ -30,7 +30,7 @@ tiktoken
 pipmaster>=0.1.7
 
 lollmsvectordb>=0.3.0
-freedom-search
+freedom-search>=0.1.9
 scrapemaster
 
 aiofiles
