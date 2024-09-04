@@ -27,7 +27,6 @@ def run_git_pull():
         # Check if there are any changes to pull
         if repo.head.commit == origin.refs.main.commit:
             ASCIIColors.success("Already up-to-date.")
-            return True
         
         # Discard local changes and force update
         try:
@@ -38,12 +37,16 @@ def run_git_pull():
         except git.GitCommandError as e:
             error_message = f"Failed to update the code: {str(e)}"
             ASCIIColors.error(error_message)
-            show_error_dialog(error_message)
-            return False
+            # show_error_dialog(error_message)
 
         print("Updating submodules")
         try:
             repo.git.submodule('update', '--init', '--recursive', '--force')
+        except Exception as ex:
+            error_message = f"Couldn't update submodules: {str(ex)}"
+            ASCIIColors.error(error_message)
+            # show_error_dialog(error_message)
+        try:
             # Checkout the main branch on each submodule
             for submodule in repo.submodules:
                 try:
@@ -56,7 +59,11 @@ def run_git_pull():
                     print(f"Couldn't update submodule {submodule}: {str(ex)}")
             
             execution_path = Path(os.getcwd())
-
+        except Exception as ex:
+            error_message = f"Couldn't update submodules: {str(ex)}"
+            ASCIIColors.error(error_message)
+            # show_error_dialog(error_message)
+        try:
             # Update lollms_core
             ASCIIColors.info("Updating lollms_core")
             lollms_core_path = execution_path / "lollms_core"
@@ -71,21 +78,41 @@ def run_git_pull():
         except Exception as ex:
             error_message = f"Couldn't update submodules: {str(ex)}"
             ASCIIColors.error(error_message)
-            show_error_dialog(error_message)
-            return False
+            # show_error_dialog(error_message)
 
         return True
     except Exception as e:
         error_message = f"Error during git operations: {str(e)}"
         ASCIIColors.error(error_message)
-        show_error_dialog(error_message)
+        # show_error_dialog(error_message)
         return False
-
+def get_valid_input():
+    while True:
+        update_prompt = "New code is updated. Do you want to update the requirements? (y/n): "
+        user_response = input(update_prompt).strip().lower()
+        
+        if user_response in ['y', 'yes']:
+            return 'yes'
+        elif user_response in ['n', 'no']:
+            return 'no'
+        else:
+            print("Invalid input. Please respond with 'y' or 'n'.")
+            
 def install_requirements():
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "-r", "requirements.txt"])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "-e", "lollms_core"])
-        ASCIIColors.success("Successfully installed requirements")
+        # Get valid input from the user
+        user_choice = get_valid_input()
+
+        # Enhance the text based on the user's response
+        if user_choice == 'yes':
+            enhanced_text = "Great choice! Updating requirements ensures your project stays up-to-date with the latest changes."
+            print(enhanced_text)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "-r", "requirements.txt"])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "-e", "lollms_core"])
+            ASCIIColors.success("Successfully installed requirements")
+        else:  # user_choice == 'no'
+            enhanced_text = "Understood. Skipping the requirements update. Make sure to update them later if needed."
+            print(enhanced_text)
     except subprocess.CalledProcessError as e:
         error_message = f"Error during pip install: {str(e)}"
         ASCIIColors.error(error_message)
