@@ -57,7 +57,17 @@
             </option>
           </select>
         </div>
-        
+        <div class="flex items-center space-x-4">
+          <label for="installed-only" class="font-semibold">
+            <input 
+              id="installed-only" 
+              type="checkbox" 
+              v-model="showOnlyInstalled"
+              class="mr-2"
+            >
+            Show only installed apps
+          </label>
+        </div>        
         <div class="flex items-center space-x-4">
           <label for="sort-select" class="font-semibold">Sort by:</label>
           <select 
@@ -161,8 +171,9 @@ export default {
       selectedFile: null,
       isUploading: false,
       error: '',
-      sortBy: 'name',
-      sortOrder: 'asc',
+      sortBy: 'update',
+      sortOrder: 'desc',
+      showOnlyInstalled: false,
     };
   },
   computed: {
@@ -190,7 +201,8 @@ export default {
                               app.description.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                               app.author.toLowerCase().includes(this.searchQuery.toLowerCase());
         const matchesCategory = this.selectedCategory === 'all' || app.category === this.selectedCategory;
-        return matchesSearch && matchesCategory;
+        const matchesInstalled = !this.showOnlyInstalled || app.installed;
+        return matchesSearch && matchesCategory && matchesInstalled;
       });
     },
     sortedAndFilteredApps() {
