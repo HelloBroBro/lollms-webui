@@ -66,7 +66,7 @@ def check_and_install_package(package: str, version: str):
 packages: List[Tuple[str, str]] = [
     ("freedom_search", "0.1.9"),
     ("scrapemaster", "0.2.0"),
-    ("lollms_client", "0.6.5"),
+    ("lollms_client", "0.7.5"),
     ("lollmsvectordb", "1.0.7"),
 ]
 
@@ -89,7 +89,7 @@ from lollms.app import LollmsApplication
 from lollms.paths import LollmsPaths
 from lollms.main_config import LOLLMSConfig
 from lollms.utilities import trace_exception
-from lollms.security import sanitize_path
+from lollms.security import sanitize_path, MultipartBoundaryCheck
 from lollms_webui import LOLLMSWebUI
 from pathlib import Path
 from ascii_colors import ASCIIColors
@@ -123,6 +123,9 @@ def get_ip_addresses():
 
 app = FastAPI(title="LoLLMS", description="This is the LoLLMS-Webui API documentation")
 
+
+# Add the MultipartBoundaryCheck middleware
+app.add_middleware(MultipartBoundaryCheck)
 
 
 #app.mount("/socket.io", StaticFiles(directory="path/to/socketio.js"))
