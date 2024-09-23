@@ -435,6 +435,37 @@ export default {
 
         },
 
+        async select_personality(pers) {
+            if (!pers) { return { 'status': false, 'error': 'no personality - select_personality' } }
+            let pth = pers.language==null?pers.full_path:pers.full_path+":"+pers.language
+            console.log("pth",pth)
+            const id = this.configFile.personalities.findIndex(item => item === pth)
+
+            const obj = {
+                client_id: this.$store.state.client_id,
+                id: id
+            }
+
+
+            try {
+                const res = await axios.post('/select_personality', obj, {headers: this.posts_headers});
+
+                if (res) {
+
+                    this.$store.dispatch('refreshConfig').then(() => {
+                        this.$store.dispatch('refreshPersonalitiesZoo').then(() => {
+                        this.$store.dispatch('refreshMountedPersonalities');                
+                        });
+                    });
+                    return res.data
+
+                }
+            } catch (error) {
+                console.log(error.message, 'select_personality - settings')
+                return
+            }
+
+        },
       async mountPersonality(pers) {
           this.isLoading = true
           console.log('mount pers', pers)
@@ -466,6 +497,14 @@ export default {
 
               }
               this.$store.dispatch('refreshMountedPersonalities');
+              const hostnameParts = window.location.href.split('/');
+
+              if(hostnameParts.length > 4){
+                  window.location.href='/'
+              }
+              else{
+                  window.location.reload(true);
+              }
           } else {
               pers.isMounted = false
               this.$store.state.toast.showToast("Could not mount personality\nError: " + res.error + "\nResponse:\n" + res, 4, false)
