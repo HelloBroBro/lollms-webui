@@ -13,16 +13,25 @@ cd /D "%~dp0"
 
 echo %CD%
 
-set LOLLMSENV_DIR=%CD%\installer_files\lollmsenv
-set INSTALL_ENV_DIR=%CD%\installer_files\lollms_env
+set LOLLMSENV_DIR=%CD%\lollmsenv
 set REPO_URL=https://github.com/ParisNeo/lollms-webui.git
 
-REM Download LollmsEnv installer
-echo Downloading LollmsEnv installer...
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/ParisNeo/LollmsEnv/releases/download/V1.2.8/lollmsenv_installer.bat' -OutFile 'lollmsenv_installer.bat'"
+set USE_MASTER=0
+if "%1"=="--use-master" set USE_MASTER=1
 
-REM Install LollmsEnv
-call lollmsenv_installer.bat --dir "%LOLLMSENV_DIR%" -y
+if %USE_MASTER%==1 (
+    echo Using current master repo for LollmsEnv...
+    git clone https://github.com/ParisNeo/LollmsEnv.git "%LOLLMSENV_DIR%"
+    cd "%LOLLMSENV_DIR%"
+    call install.bat --dir "%LOLLMSENV_DIR%" -y
+    cd ..
+) else (
+    REM Download LollmsEnv installer
+    echo Downloading LollmsEnv installer...
+    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/ParisNeo/LollmsEnv/releases/download/V1.2.9/lollmsenv_installer.bat' -OutFile 'lollmsenv_installer.bat'"
+    REM Install LollmsEnv
+    call lollmsenv_installer.bat --dir "%LOLLMSENV_DIR%" -y
+)
 
 REM Check for NVIDIA GPU and CUDA
 echo Checking for NVIDIA GPU and CUDA...
@@ -94,8 +103,11 @@ call "%LOLLMSENV_DIR%\bin\lollmsenv.bat" install-python 3.10.11
 call "%LOLLMSENV_DIR%\bin\lollmsenv.bat" create-env lollms_env 3.10.11
 pause
 REM Activate environment
-call "%LOLLMSENV_DIR%\bin\lollmsenv.bat" activate lollms_env
+"%LOLLMSENV_DIR%\bin\lollmsenv.bat" activate lollms_env
+REM venv activate lollms_env
 
+cd "%ORIGINAL_PATH%"
+ 
 REM Clone or update repository
 if exist lollms-webui\ (
     cd lollms-webui
@@ -113,6 +125,7 @@ REM Install requirements
 cd lollms-webui
 pip install -r requirements.txt
 cd ..
+
 
 REM Create launcher scripts
 echo @echo off > ..\win_run.bat
