@@ -7,7 +7,6 @@ This file is the entry point to the webui.
 """
 from lollms.utilities import PackageManager
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 
 import threading
 import time
@@ -23,8 +22,9 @@ if not PackageManager.check_package_installed_with_version("ascii_colors", expec
 from ascii_colors import ASCIIColors
 ASCIIColors.success("OK")
 
-ASCIIColors.yellow(f"Checking pipmaster ({expected_ascii_colors_version}) ...", end="", flush=True)
-if not PackageManager.check_package_installed_with_version("pipmaster", "0.2.4"):
+expected_pipmaster_version = "0.3.2"
+ASCIIColors.yellow(f"Checking pipmaster ({expected_pipmaster_version}) ...", end="", flush=True)
+if not PackageManager.check_package_installed_with_version("pipmaster", expected_pipmaster_version):
     PackageManager.install_or_update("pipmaster")
 import pipmaster as pm
 ASCIIColors.success("OK")
@@ -70,7 +70,7 @@ packages: List[Tuple[str, str]] = [
     ("freedom_search", "0.1.9"),
     ("scrapemaster", "0.2.1"),
     ("lollms_client", "0.7.5"),
-    ("lollmsvectordb", "1.1.4"),
+    ("lollmsvectordb", "1.1.5"),
 ]
 
 def check_pn_libs():
@@ -86,8 +86,6 @@ def check_pn_libs():
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
-from fastapi.responses import HTMLResponse
-from lollms.app import LollmsApplication
 from lollms.paths import LollmsPaths
 from lollms.main_config import LOLLMSConfig
 from lollms.utilities import trace_exception
