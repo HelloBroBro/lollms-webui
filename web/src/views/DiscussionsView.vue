@@ -52,12 +52,9 @@
     </transition>
     <transition name="slide-right">
     <div  v-if="showLeftPanel"
-        class="relative flex flex-col no-scrollbar shadow-lg min-w-[12rem] max-w-[12rem]"
+        class="relative flex flex-col no-scrollbar shadow-lg min-w-[15rem] max-w-[15rem]"
         >
-        <!-- LEFT SIDE PANEL -->
-        <div id="leftPanel" class="flex flex-col flex-grow overflow-y-scroll no-scrollbar "
-            @dragover.stop.prevent="setDropZoneDiscussion()">
-            <div class="toolbar discussion">
+        <div class="toolbar discussion">
                 <!-- Toolbar container -->
                 <div class="toolbar-container">
                 <!-- "+" button -->
@@ -81,8 +78,8 @@
                     </button>
 
                     <!-- Expandable menu -->
-                    <div class="expandable-menu z-50 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg" :class="{ 'menu-visible': isMenuVisible }">
-                        <div class="grid grid-cols-4 gap-4">
+                    <div class="expandable-menu discussion z-50 p-4 bg-white rounded-lg shadow-lg" :class="{ 'hidden': !isMenuVisible }">
+                        <div>
                             <!-- Edit discussion list -->
                             <button class="text-3xl hover:text-secondary dark:hover:text-secondary-light duration-150 active:scale-95" title="Edit discussion list" type="button" @click="isCheckbox = !isCheckbox" :class="isCheckbox ? 'text-secondary dark:text-secondary-light' : 'text-gray-700 dark:text-gray-300'">
                             <i data-feather="check-square"></i>
@@ -160,25 +157,9 @@
                             <button @click="importDiscussions" class="text-sm hover:text-secondary dark:hover:text-secondary-light">LOLLMS</button> 
                             <button @click="importChatGPT" class="text-sm hover:text-secondary dark:hover:text-secondary-light">ChatGPT</button>
                         </div>
-                        </div>
+                    </div>
 
 
-                <!-- Search bar -->
-                <div v-if="isSearch" class="absolute top-0 left-12 w-64 p-4 bg-bg-light dark:bg-bg-dark">
-                    <div class="relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <div class="scale-75">
-                        <i data-feather="search"></i>
-                        </div>
-                    </div>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <div class="hover:text-secondary duration-75 active:scale-90" :class="filterTitle ? 'visible' : 'invisible'" title="Clear" @click="filterTitle = ''">
-                        <i data-feather="x"></i>
-                        </div>
-                    </div>
-                    <input type="search" id="default-search" class="block w-full p-2 pl-10 pr-10 text-sm border border-gray-300 rounded-lg bg-bg-light focus:ring-secondary focus:border-secondary dark:bg-bg-dark dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-secondary dark:focus:border-secondary" placeholder="Search..." title="Filter discussions by title" v-model="filterTitle" @input="filterDiscussions()" />
-                    </div>
-                </div>
 
                 <!-- Checkbox operations -->
                 <div v-if="isCheckbox" class="absolute top-0 left-12 w-64 p-4 bg-bg-light dark:bg-bg-dark">
@@ -215,7 +196,28 @@
                 </div>
             </div>
             </div>
+        </div>
+        <!-- Search bar -->
+        <div v-if="isSearch" class="w-full p-4 bg-bg-light dark:bg-bg-dark">
+            <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div class="scale-75">
+                <i data-feather="search"></i>
+                </div>
             </div>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <div class="hover:text-secondary duration-75 active:scale-90" :class="filterTitle ? 'visible' : 'invisible'" title="Clear" @click="filterTitle = ''">
+                <i data-feather="x"></i>
+                </div>
+            </div>
+            <input type="search" id="default-search" class="block w-full p-2 pl-10 pr-10 text-sm border border-gray-300 rounded-lg bg-bg-light focus:ring-secondary focus:border-secondary dark:bg-bg-dark dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-secondary dark:focus:border-secondary" placeholder="Search..." title="Filter discussions by title" v-model="filterTitle" @input="filterDiscussions()" />
+            </div>
+        </div>
+
+        <!-- LEFT SIDE PANEL -->
+        <div id="leftPanel" class="flex flex-col flex-grow overflow-y-scroll overflow-x-hidden custom-scrollbar "
+            @dragover.stop.prevent="setDropZoneDiscussion()">
+
             <div class="relative flex flex-row flex-grow mb-10 z-0  w-full">
                 <!-- DISCUSSION LIST -->
                 <div class="mx-0 flex flex-col flex-grow  w-full " :class="isDragOverDiscussion ? 'pointer-events-none' : ''">
@@ -245,7 +247,7 @@
             </div>
         </div>
         <div class="flex flex-row">
-            <div class="absolute h-15 bottom-0 left-0 w-full unicolor-panels-color light-text-panel py-4 cursor-pointer text-light-text-panel dark:text-dark-text-panel hover:text-secondary" @click="showDatabaseSelector">
+            <div class="h-15 w-full  py-4 cursor-pointer text-light-text-panel dark:text-dark-text-panel hover:text-secondary" @click="showDatabaseSelector">
                 <p class="text-center font-large font-bold text-l drop-shadow-md align-middle">{{ formatted_database_name.replace("_"," ") }}</p>
             </div>
         </div>
@@ -561,36 +563,28 @@ animation: custom-pulse 2s infinite;
 
 
 .toolbar {
-    @apply relative w-full;
-  }
+@apply relative w-full;
+}
 
-  .toolbar-container {
-    @apply flex items-center h-10; /* h-10 is equivalent to 40px */
-  }
+.toolbar-container {
+@apply flex items-center h-10; /* h-10 is equivalent to 40px */
+}
 
-  .toolbar-button {
-    @apply bg-transparent border-none cursor-pointer p-2 transition-colors duration-300;
-  }
+.toolbar-button {
+@apply bg-transparent border-none cursor-pointer p-2 transition-colors duration-300;
+}
 
-  .toolbar-button:hover {
-    @apply text-blue-500; /* Assuming #007bff is close to Tailwind's blue-500 */
-  }
+.toolbar-button:hover {
+@apply text-blue-500; /* Assuming #007bff is close to Tailwind's blue-500 */
+}
 
 .menu-container {
   position: relative;
 }
-
 .expandable-menu {
-  position: absolute;
-  top: 100%;
-  left: 10px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  @apply absolute top-full left-2.5 border border-gray-300 rounded flex-col shadow-md;
 }
+
 
 .menu-container:hover .expandable-menu,
 .menu-visible {
@@ -2643,10 +2637,10 @@ export default {
         version_info:{
             get(){
                 if(this.$store.state.version!=undefined && this.$store.state.version!="unknown"){
-                    return " v" + this.$store.state.version;
+                    return this.$store.state.version;
                 }
                 else{
-                    return "";
+                    return "...";
                 }
             }
         },
