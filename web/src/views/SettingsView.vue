@@ -1,5 +1,5 @@
 <template>
-    <div class="container flex flex-row shadow-lg p-10 pt-0 overflow-y-scroll w-full background-color scrollbar-thin scrollbar-track-bg-light-tone scrollbar-thumb-bg-light-tone-panel hover:scrollbar-thumb-primary dark:scrollbar-track-bg-dark-tone dark:scrollbar-thumb-bg-dark-tone-panel dark:hover:scrollbar-thumb-primary active:scrollbar-thumb-secondary">
+    <div class="container pt-12 flex flex-row shadow-lg p-10 pt-0 overflow-y-scroll w-full background-color scrollbar-thin scrollbar-track-bg-light-tone scrollbar-thumb-bg-light-tone-panel hover:scrollbar-thumb-primary dark:scrollbar-track-bg-dark-tone dark:scrollbar-thumb-bg-dark-tone-panel dark:hover:scrollbar-thumb-primary active:scrollbar-thumb-secondary">
         <!-- CONTROL PANEL -->
         <div
             class="sticky top-0 z-10 flex flex-row mb-2 p-3 gap-3 w-full rounded-b-lg  panels-color  shadow-lg">
@@ -574,6 +574,7 @@
                                                 <option value="bare">Bare, useful when in chat mode</option>
                                                 <option value="llama3">LLama3 communication template</option>
                                                 <option value="mistral">Mistral communication template</option>
+                                                <option value="deepseek">DeepSeek communication template</option>
                                             </select>
                                         </td>
                                         </tr>
@@ -4683,6 +4684,19 @@ export default {
                 this.configFile.start_ai_header_id_template = "[INST]"
                 this.configFile.end_ai_header_id_template = ": "
                 this.configFile.end_ai_message_id_template = "[/INST]"
+                this.settingsChanged=true
+            } else if (selectedOption === 'deepseek') {
+                console.log("Using deepseek template")
+                this.configFile.start_header_id_template = ""
+                this.configFile.system_message_template = " Using this information"
+                this.configFile.end_header_id_template = ": "
+                this.configFile.separator_template = "\n"
+                this.configFile.start_user_header_id_template = ""
+                this.configFile.end_user_header_id_template = ": "
+                this.configFile.end_user_message_id_template = ""
+                this.configFile.start_ai_header_id_template = ""
+                this.configFile.end_ai_header_id_template = ": "
+                this.configFile.end_ai_message_id_template = ""
                 this.settingsChanged=true
             }
         },
