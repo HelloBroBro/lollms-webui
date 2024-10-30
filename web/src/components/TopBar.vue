@@ -154,12 +154,89 @@
             </ul>
             </div>
         </div>
+
         <div v-if="isDarkMode" class="sun text-2xl w-6 hover:text-primary duration-150 cursor-pointer" title="Switch to Light theme" @click="themeSwitch()">
             <i data-feather="sun"></i>
         </div>
         <div v-else class="moon text-2xl w-6 hover:text-primary duration-150 cursor-pointer" title="Switch to Dark theme" @click="themeSwitch()">
             <i data-feather="moon"></i>
-        </div>             
+        </div>    
+
+        <div class="relative inline-flex">
+          <!-- Custom button with enhanced styling -->
+          <button 
+            @click="themeDropdownOpen = !themeDropdownOpen"
+            class="inline-flex items-center justify-between min-w-[120px] px-4 py-2
+                  bg-gradient-to-r from-blue-500/10 to-purple-500/10
+                  dark:from-blue-400/20 dark:to-purple-400/20
+                  border border-blue-200 dark:border-blue-700
+                  rounded-lg shadow-sm
+                  text-gray-700 dark:text-gray-200
+                  hover:border-blue-300 dark:hover:border-blue-600
+                  hover:shadow-md
+                  focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                  transition-all duration-300 ease-in-out
+                  backdrop-blur-sm"
+          >
+            <div class="flex items-center space-x-2">
+              <!-- Theme Icon -->
+              <svg 
+                class="w-5 h-5 text-blue-500 dark:text-blue-400"
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              <span class="font-medium">{{ currentTheme }}</span>
+            </div>
+            <svg 
+              class="w-5 h-5 text-blue-500 dark:text-blue-400 transition-transform duration-300"
+              :class="{ 'rotate-180': themeDropdownOpen }"
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 20 20" 
+              fill="currentColor"
+            >
+              <path fill-rule="evenodd" 
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                    clip-rule="evenodd" />
+            </svg>
+          </button>
+
+          <!-- Enhanced Dropdown menu with animations -->
+          <div 
+            v-if="themeDropdownOpen"
+            class="absolute left-0 z-50 w-full mt-2 
+                  overflow-hidden
+                  bg-white dark:bg-gray-800 
+                  border border-blue-200 dark:border-blue-700
+                  rounded-lg shadow-lg
+                  transform origin-top
+                  animate-dropdown"
+          >
+            <div class="max-h-60 overflow-y-auto">
+              <a
+                v-for="theme in availableThemes"
+                :key="theme"
+                @click="loadTheme(theme); currentTheme = theme; themeDropdownOpen = false"
+                class="flex items-center space-x-2 px-4 py-3
+                      text-gray-700 dark:text-gray-200
+                      hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50
+                      dark:hover:from-blue-900/30 dark:hover:to-purple-900/30
+                      cursor-pointer
+                      transition-colors duration-150
+                      group"
+              >
+                <div class="w-2 h-2 rounded-full bg-blue-400 group-hover:bg-blue-500 
+                            transition-colors duration-150"></div>
+                <span class="font-medium">{{ theme }}</span>
+              </a>
+            </div>
+          </div>
+        </div>        
+        
       </div>
     </div>
   </div>
@@ -167,19 +244,33 @@
 
 <script>
 import Navigation from '@/components/Navigation.vue';
-
+import ActionButton from '@/components/ActionButton.vue'
+import SocialIcon from '@/components/SocialIcon.vue'
+import axios from 'axios'
+import feather from 'feather-icons'
 export default {
   name: 'TopBar',
   components: {
-    Navigation
+    Navigation,
+    ActionButton,
+    SocialIcon,
   },
   data() {
     return {
+      themeDropdownOpen: false,
+      currentTheme: localStorage.getItem('preferred-theme') || 'default',
+      availableThemes: ['default', 'strawberry_milkshake', 'red_dragon', 'matrix_reborn', 'borg', 'amber', 'sober_gray', 'strawberry'],
+      isLoading: false,
+      error: null,      
       isInfosMenuVisible: false,
       isVisible: false,
       isPinned: false,
       selectedLanguage: '',
       isLanguageMenuVisible: false,
+      sunIcon: document.querySelector(".sun"),
+      moonIcon: document.querySelector(".moon"),
+      userTheme: localStorage.getItem("theme"),
+      systemTheme: window.matchMedia("prefers-color-scheme: dark").matches,
 
     }
   },
@@ -224,7 +315,131 @@ export default {
         return this.$store.state.isConnected;
     },     
   },
+  async mounted() {
+    try {
+      document.addEventListener('click', this.handleClickOutside)
+      // Load saved theme preference
+      const savedTheme = localStorage.getItem('preferred-theme')
+      if (savedTheme && this.availableThemes.includes(savedTheme)) {
+        this.currentTheme = savedTheme
+      }
+      
+      // Load the initial theme
+      try {
+        await this.loadTheme(this.currentTheme)
+      } catch (err) {
+        this.error = 'Failed to initialize theme system'
+        console.error(err)
+      }
+      
+    } catch (err) {
+      this.error = 'Failed to initialize theme system'
+      console.error(err)
+    }
+  },  
+  beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside)
+  },
+  async created() {
+    this.sunIcon = document.querySelector(".sun");
+        this.moonIcon = document.querySelector(".moon");
+        this.userTheme = localStorage.getItem("theme");
+        console.log(this.userTheme)
+        this.systemTheme = window.matchMedia("prefers-color-scheme: dark").matches;
+        this.themeCheck()
+
+        this.$nextTick(() => {
+            feather.replace()
+        })
+
+  },
   methods: {
+    handleClickOutside(e) {
+      const dropdown = this.$el
+      if (!dropdown.contains(e.target)) {
+        this.themeDropdownOpen = false
+      }
+    },
+    getSavedTheme() {
+      try {
+        return localStorage.getItem('preferred-theme')
+      } catch (e) {
+        console.warn('Failed to access localStorage:', e)
+        return null
+      }
+    },
+
+    // Safely save theme to localStorage
+    saveTheme(themeName) {
+      try {
+        // Clear some space first
+        this.clearOldStorageItems()
+        localStorage.setItem('preferred-theme', themeName)
+      } catch (e) {
+        console.warn('Failed to save theme preference:', e)
+        // Continue without saving to localStorage
+      }
+    },
+
+    // Helper method to clear space in localStorage
+    clearOldStorageItems() {
+      try {
+        // Remove old or unnecessary items
+        const itemsToKeep = ['preferred-theme'] // Add other critical items here
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (!itemsToKeep.includes(key)) {
+            localStorage.removeItem(key)
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to clear localStorage:', e)
+      }
+    },
+
+    async loadTheme(themeName) {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        // Fetch and apply new theme CSS
+        const response = await axios.get(`/themes/${themeName}.css`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          }
+        });
+        console.log(response)
+        // Remove any existing theme style element
+        const existingStyle = document.getElementById('theme-styles');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+
+        // Create and append new style element
+        const styleElement = document.createElement('style');
+        styleElement.id = 'theme-styles';
+        styleElement.textContent = response.data;
+        document.head.appendChild(styleElement);
+
+        // Apply theme class to body
+        // document.body.className = `theme-${themeName}`;
+
+        // Safely save theme preference
+        this.saveTheme(themeName);        
+      } catch (error) {
+        console.error(`Failed to load theme: ${themeName}`, error)
+        this.error = `Failed to load theme: ${themeName}`
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    reloadTheme() {
+      return this.loadTheme(this.currentTheme)
+    },
+      
     themeSwitch() {
         
         if (document.documentElement.classList.contains("dark")) {
@@ -262,13 +477,13 @@ export default {
 
     showInfosMenu() {
         this.isInfosMenuVisible = true;
-        nextTick(() => {
+        this.$nextTick(() => {
             feather.replace()
         })
       },
     hideInfosMenu() {
         this.isInfosMenuVisible = false;
-        nextTick(() => {
+        this.$nextTick(() => {
                 feather.replace()
             })
     },    
@@ -296,7 +511,7 @@ export default {
     },
     showNews(){
         this.$store.state.news.show()
-        nextTick(() => {
+        this.$nextTick(() => {
             feather.replace()
         })
     },
@@ -306,7 +521,7 @@ export default {
             document.documentElement.classList.add("dark");
             this.moonIcon.classList.add("display-none");
 
-            nextTick(()=>{
+            this.$nextTick(()=>{
                 //import('highlight.js/styles/tokyo-night-dark.css');
                 import('highlight.js/styles/stackoverflow-dark.css');
 
@@ -315,11 +530,10 @@ export default {
             return
         }
 
-        nextTick(()=>{
+        this.$nextTick(()=>{
             //import('highlight.js/styles/tomorrow-night-blue.css');
             import('highlight.js/styles/stackoverflow-light.css');
         })
-        this.sunIcon.classList.add("display-none")
 
     },
     iconToggle() {
@@ -413,5 +627,11 @@ export default {
 
 .hover-zone {
   opacity: 0;
+}
+
+
+.error {
+  color: red;
+  margin-left: 1rem;
 }
 </style>

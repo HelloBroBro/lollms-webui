@@ -1,54 +1,80 @@
 <template>
     <transition name="fade-and-fly">
-        <div v-if="!isReady" class="fixed top-0 left-0 w-screen h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-100 dark:from-blue-900 dark:to-purple-900 overflow-hidden">
-        <!-- Falling strawberries -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden">
-            <div v-for="n in 50" :key="n" class="absolute animate-fall animate-giggle"
-                :style="{
-                left: `${Math.random() * 100}%`,
-                top: `-20px`,
-                animationDuration: `${3 + Math.random() * 7}s`,
-                animationDelay: `${Math.random() * 5}s`
-                }">
-            🌟
-            </div>
-        </div>
-
-        <div class="flex flex-col items-center text-center max-w-4xl w-full px-4 relative z-10">
-            <div class="mb-8 w-full">
-                <div class="text-6xl md:text-7xl font-bold text-amber-500 mb-2"
-                    style="text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;">
-                    L🌟LLMS
+        <div v-if="!isReady" class="fixed top-0 left-0 w-screen h-screen flex items-center justify-center overflow-hidden">
+            <!-- Falling stars -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                <div v-for="n in 50" :key="n" class="absolute animate-fall animate-giggle"
+                    :style="{
+                    left: `${Math.random() * 100}%`,
+                    top: `-20px`,
+                    animationDuration: `${3 + Math.random() * 7}s`,
+                    animationDelay: `${Math.random() * 5}s`
+                    }">
+                🌟
                 </div>
-
-            <p class="text-2xl text-gray-600 dark:text-gray-300 italic">
-                One tool to rule them all
-            </p>
-            <p class="text-xl text-gray-500 dark:text-gray-400 mb-6">
-                by ParisNeo
-            </p>
-            <p class="bottom-0 text-2xl text-gray-600 dark:text-gray-300 italic">
-                {{ version_info }}
-            </p>
-
-            <div class="w-full h-24 relative overflow-hidden bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-full shadow-lg flex items-center justify-center">
-                <p style="font-size: 48px; line-height: 1;">🌟</p>
             </div>
 
-            </div>
-            
-            <div class="w-full max-w-2xl">
-            <div role="status" class="w-full">
-                <p class="text-xl text-gray-700 dark:text-gray-300">
-                {{ loading_infos }}...
-                </p>
-                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-                {{ Math.round(loading_progress) }}%
-                </p>
-            </div>
+            <div class="flex flex-col items-center text-center max-w-4xl w-full px-4 relative z-10">
+                <div class="mb-8 w-full">
+                    <div class="text-5xl md:text-6xl font-bold text-amber-500 mb-2 hover:scale-105 transition-transform"
+                        style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2), 
+                                            2px 2px 0px white, 
+                                            -2px -2px 0px white, 
+                                            2px -2px 0px white, 
+                                            -2px 2px 0px white;
+                                background: linear-gradient(45deg, #f59e0b, #fbbf24);
+                                -webkit-background-clip: text;
+                                background-clip: text;">
+                        L<span class="animate-pulse">⭐</span>LLMS
+                    </div>
+
+
+                    <p class="text-2xl text-gray-600 dark:text-gray-300 italic">
+                        One tool to rule them all
+                    </p>
+                    <p class="text-xl text-gray-500 dark:text-gray-400 mb-6">
+                        by ParisNeo
+                    </p>
+                    <p class="bottom-0 text-2xl text-gray-600 dark:text-gray-300 italic">
+                        {{ version_info }}
+                    </p>
+
+                    <!-- Clickable interesting fact card -->
+                    <div class="mt-6 mb-6 p-4 bg-white/80 dark:bg-gray-800/80 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        @click="updateRandomFact">
+                        <p class="text-lg text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold text-blue-600 dark:text-blue-400">🤔 Fun Fact: </span>
+                            <span v-html="randomFact"></span>
+                        </p>
+                    </div>
+
+
+                    <!-- Animated Progress Bar -->
+                    <div class="w-full h-24 relative overflow-hidden bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-full shadow-lg">
+                        <!-- Progress Background -->
+                        <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 transition-all duration-300"
+                            :style="{ width: `${loading_progress}%` }">
+                        </div>
+                        <!-- Star that moves with progress -->
+                        <div class="absolute top-0 h-full flex items-center transition-all duration-300"
+                            :style="{ left: `${loading_progress}%`, transform: 'translateX(-50%)' }">
+                            <p style="font-size: 48px; line-height: 1;">🌟</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-full max-w-2xl">
+                    <div role="status" class="w-full">
+                        <p class="text-xl text-gray-700 dark:text-gray-300">
+                            {{ loading_infos }}...
+                        </p>
+                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                            {{ Math.round(loading_progress) }}%
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
     </transition>
     <transition name="slide-right">
     <div  v-if="showLeftPanel"
@@ -61,10 +87,19 @@
                     alt="Logo" title="LoLLMS WebUI">
                 </div>
                 <div class="flex flex-col justify-center">
-                <div class="text-6xl md:text-2xl font-bold text-amber-500 mb-2"
-                    style="text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;">
-                    L🌟LLMS
-                </div>
+                    <div class="text-center p-2">
+                        <div class="text-md relative inline-block">
+                            <span class="relative inline-block font-bold tracking-wide text-black dark:text-white">
+                                LoLLMS
+                            </span>
+                            <div class="absolute -bottom-0.5 left-0 w-full h-0.5 
+                                        bg-black dark:bg-white
+                                        transform origin-left transition-transform duration-300
+                                        hover:scale-x-100 scale-x-0"></div>
+                        </div>
+                    </div>
+
+
                 <p class="text-gray-400 text-sm">One tool to rule them all</p>
                 </div>
             </RouterLink>
@@ -223,20 +258,70 @@
 
 
 
-                    <div class="toolbar-button"  @mouseleave="hideBindingsMenu" v-if="!loading">
+                    <div class="toolbar-button" @mouseleave="hideBindingsMenu" v-if="!loading">
                         <div class="relative inline-block">
                             <!-- Bindings menu positioned above the button -->
-                            <div v-show="isBindingsMenuVisible" @mouseenter="showBindingsMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-60 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
-                                <div class="p-8 m-0 grid grid-cols-4 gap-4 max-h-60 overflow-y-auto custom-scrollbar">
-                                    <div v-for="(item, index) in installedBindings" :key="index" class="relative group/item">                             
-                                        <button @click.prevent="setBinding(item)" :title="item.name" class="w-10 h-10 rounded-full overflow-hidden transition-transform duration-200 transform group-hover/item:scale-110 focus:outline-none">
-                                            <img :src="item.icon ? item.icon : modelImgPlaceholder" @error="modelImgPlaceholder" :alt="item.name" class="w-full h-full object-cover" :class="{'border-2 border-secondary': item.name == binding_name}">
-                                        </button>
-                                        
-                                        <div class="absolute -bottom-4 left-0 w-full flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white rounded-md shadow-md p-1">
-                                            <button @click.prevent="showModelConfig(item)" class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none" title="Configure Binding">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <div v-show="isBindingsMenuVisible" @mouseenter="showBindingsMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-80 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
+                                <!-- Search Bar -->
+                                <div class="p-2 border-b border-gray-200 dark:border-gray-700">
+                                    <input 
+                                        type="text" 
+                                        v-model="bindingSearchQuery" 
+                                        placeholder="Search bindings..." 
+                                        class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                </div>
+                                
+                                <div class="p-4 grid grid-cols-3 gap-4 max-h-80 overflow-y-auto custom-scrollbar">
+                                    <div 
+                                        v-for="(item, index) in filteredBindings" 
+                                        :key="index" 
+                                        class="relative group/item flex flex-col items-center"
+                                    >                             
+                                        <!-- Icon and Name Container -->
+                                        <div class="flex flex-col items-center hover:bg-blue-100 dark:hover:bg-blue-900 p-2 rounded-md w-full cursor-pointer">
+                                            <button 
+                                                @click.prevent="setBinding(item)" 
+                                                :title="item.name" 
+                                                class="w-12 h-12 rounded-md overflow-hidden transition-transform duration-200 transform group-hover/item:scale-105 focus:outline-none"
+                                            >
+                                                <img 
+                                                    :src="item.icon ? item.icon : modelImgPlaceholder" 
+                                                    @error="modelImgPlaceholder" 
+                                                    :alt="item.name" 
+                                                    class="w-full h-full object-cover" 
+                                                    :class="{'border-2 border-secondary': item.name == binding_name}"
+                                                >
                                             </button>
+                                            
+                                            <!-- Truncated Name -->
+                                            <span class="mt-1 text-xs text-center w-full truncate" :title="item.name">
+                                                {{ item.name }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Hover Options -->
+                                        <div 
+                                            class="absolute top-0 left-0 w-full h-full opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-900 rounded-md shadow-md p-2 flex flex-col items-center justify-center"
+                                        >
+                                            <!-- Full Name -->
+                                            <span class="text-xs font-medium mb-2 text-center"
+                                            @click.prevent="setBinding(item)"                                             
+                                            >{{ item.name }}</span>
+                                            
+                                            <!-- Action Buttons -->
+                                            <div class="flex space-x-1">
+                                                <button 
+                                                    @click.prevent="showModelConfig(item)" 
+                                                    class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none" 
+                                                    title="Configure Binding"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -255,18 +340,64 @@
                     <div class="toolbar-button" @mouseleave="hideModelsMenu" v-if="!loading">
                         <div class="relative inline-block">
                             <!-- Models menu positioned above the button -->
-                            <div v-show="isModelsMenuVisible" @mouseenter="showModelsMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-60 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
-                                <div class="p-8 m-0 grid grid-cols-4 gap-4 max-h-60 overflow-y-auto custom-scrollbar">
-                                    <div v-for="(item, index) in installedModels" :key="index" class="relative group/item">                             
-                                        <button @click.prevent="setModel(item)" :title="item.name" class="w-10 h-10 rounded-full overflow-hidden transition-transform duration-200 transform group-hover/item:scale-110 focus:outline-none">
-                                            <img :src="item.icon ? item.icon : modelImgPlaceholder" @error="personalityImgPlacehodler" :alt="item.name" class="w-full h-full object-cover" :class="{'border-2 border-secondary': item.name == model_name}">
-                                        </button>
-                                        
-                                        <div class="absolute -bottom-4 left-0 w-full flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white rounded-md shadow-md p-1">
-                                            <button @click.prevent="copyModelNameFrom(item.name)" class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none" title="Copy Model Name">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <div v-show="isModelsMenuVisible" @mouseenter="showModelsMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-80 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
+                                <!-- Search Bar -->
+                                <div class="p-2 border-b border-gray-200 dark:border-gray-700">
+                                    <input 
+                                        type="text" 
+                                        v-model="modelSearchQuery" 
+                                        placeholder="Search models..." 
+                                        class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                </div>
+                                
+                                <div class="p-4 grid grid-cols-3 gap-4 max-h-80 overflow-y-auto custom-scrollbar">
+                                    <div 
+                                        v-for="(item, index) in filteredModels" 
+                                        :key="index" 
+                                        class="relative group/item flex flex-col items-center"
+                                    >                             
+                                        <!-- Icon and Name Container -->
+                                        <div class="flex flex-col items-center hover:bg-blue-100 dark:hover:bg-blue-900 p-2 rounded-md w-full cursor-pointer">
+                                            <button 
+                                                @click.prevent="setModel(item)" 
+                                                :title="item.name" 
+                                                class="w-12 h-12 rounded-md overflow-hidden transition-transform duration-200 transform group-hover/item:scale-105 focus:outline-none"
+                                            >
+                                                <img 
+                                                    :src="item.icon ? item.icon : modelImgPlaceholder" 
+                                                    @error="personalityImgPlacehodler" 
+                                                    :alt="item.name" 
+                                                    class="w-full h-full object-cover" 
+                                                    :class="{'border-2 border-secondary': item.name == model_name}"
+                                                >
                                             </button>
-                                            <!-- You can add more buttons here if needed -->
+                                            
+                                            <!-- Truncated Name -->
+                                            <span class="mt-1 text-xs text-center w-full truncate" :title="item.name">
+                                                {{ item.name }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Hover Options -->
+                                        <div 
+                                            class="absolute top-0 left-0 w-full h-full opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-900 rounded-md shadow-md p-2 flex flex-col items-center justify-center"
+                                        >
+                                            <!-- Full Name -->
+                                            <span class="text-xs font-medium mb-2 text-center"
+                                            @click.prevent="setModel(item)"                                             
+                                            >{{ item.name }}</span>
+                                            
+                                            <!-- Action Buttons -->
+                                            <div class="flex space-x-1">
+                                                <button 
+                                                    @click.prevent="copyModelNameFrom(item.name)" 
+                                                    class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none" 
+                                                    title="Copy Model Name"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -281,37 +412,94 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Personalities menu positioned above the dock -->
-                    <div class="toolbar-button" @mouseleave="hidePersonalitiesMenu"  v-if="!loading">
-                        <div class="relative inline-block ">
+
+                    <!-- Personalities menu positioned below the dock -->
+                    <div class="toolbar-button" @mouseleave="hidePersonalitiesMenu" v-if="!loading">
+                        <div class="relative inline-block">
                             <!-- Personalities menu positioned above the button -->
-                            <div v-show="isPersonalitiesMenuVisible"  @mouseenter="showPersonalitiesMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-60 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
-                                <div class="p-8 m-0 grid grid-cols-4 gap-4 max-h-60 overflow-y-auto custom-scrollbar">
-                                    <div v-for="(item, index) in mountedPersonalities" :key="index" class="relative group/item">                             
-                                        <button @click.prevent="onPersonalitySelected(item)" :title="item.name" class="w-10 h-10 rounded-full overflow-hidden transition-transform duration-200 transform group-hover/item:scale-110 focus:outline-none">
-                                            <img :src="bUrl + item.avatar" @error="personalityImgPlacehodler" :alt="item.name" class="w-full h-full object-cover" :class="{'border-2 border-secondary': $store.state.active_personality_id == $store.state.personalities.indexOf(item.full_path)}">
-                                        </button>
-                                        
-                                        <div class="absolute -bottom-4 left-0 w-full flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-900 rounded-md shadow-md p-1">
-                                            <button @click.prevent="unmountPersonality(item)" class="p-1 bg-red-500 rounded-full text-white hover:bg-red-600 focus:outline-none" title="Unmount">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <div v-show="isPersonalitiesMenuVisible" @mouseenter="showPersonalitiesMenu" class="absolute m-0 p-0 z-10 top-full left-0 transform w-80 bg-white dark:bg-gray-900 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-300 ease-out mb-2">
+                                <!-- Search Bar -->
+                                <div class="p-2 border-b border-gray-200 dark:border-gray-700">
+                                    <input 
+                                        type="text" 
+                                        v-model="personalitySearchQuery" 
+                                        placeholder="Search personalities..." 
+                                        class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                </div>
+                                
+                                <div class="p-4 grid grid-cols-3 gap-4 max-h-80 overflow-y-auto custom-scrollbar">
+                                    <div 
+                                        v-for="(item, index) in filteredPersonalities" 
+                                        :key="index" 
+                                        class="relative group/item flex flex-col items-center"
+                                    >                             
+                                        <!-- Icon and Name Container -->
+                                        <div class="flex flex-col items-center hover:bg-blue-100 dark:hover:bg-blue-900 p-2 rounded-md w-full cursor-pointer">
+                                            <button 
+                                                @click.prevent="onPersonalitySelected(item)" 
+                                                :title="item.name" 
+                                                class="w-12 h-12 rounded-md overflow-hidden transition-transform duration-200 transform group-hover/item:scale-105 focus:outline-none"
+                                            >
+                                                <img 
+                                                    :src="bUrl + item.avatar" 
+                                                    @error="personalityImgPlacehodler" 
+                                                    :alt="item.name" 
+                                                    class="w-full h-full object-cover" 
+                                                    :class="{'border-2 border-secondary': $store.state.active_personality_id == $store.state.personalities.indexOf(item.full_path)}"
+                                                >
                                             </button>
-                                            <button @click.prevent="remount_personality(item)" class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none ml-1" title="Remount">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                            </button>
-                                            <button @click.prevent="handleOnTalk(item)" class="p-1 bg-green-500 rounded-full text-white hover:bg-green-600 focus:outline-none ml-1" title="Talk">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                                            </button>
+                                            
+                                            <!-- Truncated Name -->
+                                            <span class="mt-1 text-xs text-center w-full truncate" :title="item.name">
+                                                {{ item.name }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Hover Options -->
+                                        <div 
+                                            class="absolute top-0 left-0 w-full h-full opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-900 rounded-md shadow-md p-2 flex flex-col items-center justify-center"
+                                        >
+                                            <!-- Full Name -->
+                                            <span class="text-xs font-medium mb-2 text-center" 
+                                            @click.prevent="onPersonalitySelected(item)"                                             
+                                            >{{ item.name }}</span>
+                                            
+                                            <!-- Action Buttons -->
+                                            <div class="flex space-x-1">
+                                                <button 
+                                                    @click.prevent="unmountPersonality(item)" 
+                                                    class="p-1 bg-red-500 rounded-full text-white hover:bg-red-600 focus:outline-none" 
+                                                    title="Unmount"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                </button>
+                                                <button 
+                                                    @click.prevent="remount_personality(item)" 
+                                                    class="p-1 bg-blue-500 rounded-full text-white hover:bg-blue-600 focus:outline-none" 
+                                                    title="Remount"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                </button>
+                                                <button 
+                                                    @click.prevent="handleOnTalk(item)" 
+                                                    class="p-1 bg-green-500 rounded-full text-white hover:bg-green-600 focus:outline-none" 
+                                                    title="Talk"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div @mouseenter="showPersonalitiesMenu" class="personalities-hover-area">
-                            <MountedPersonalities ref="mountedPers" :onShowPersList="onShowPersListFun" :onReady="onPersonalitiesReadyFun"/>
+                                <MountedPersonalities ref="mountedPers" :onShowPersList="onShowPersListFun" :onReady="onPersonalitiesReadyFun"/>
                             </div>
                         </div>
-                    </div>      
+                    </div>
+ 
                     
             </div>
         </div>
@@ -451,30 +639,74 @@
                         
                         <!-- REMOVED FOR NOW, NEED MORE TESTING -->
                         <!-- @click="scrollToElementInContainer($event.target, 'messages-list')"  -->
-                        <div  v-if="discussionArr.length < 2 && personality.prompts_list.length > 0"  class="w-full rounded-lg m-2 shadow-lg hover:border-primary dark:hover:border-primary hover:border-solid hover:border-2 border-2 border-transparent even:bg-bg-light-discussion-odd dark:even:bg-bg-dark-discussion-odd flex flex-col overflow-hidden p-4 pb-2 h-[600px]">
-                            <h2 class="text-2xl font-bold mb-4">Prompt examples</h2>
-                            <div v-if="discussionArr.length < 2 && personality.prompts_list.length > 0" 
-                                class="overflow-y-auto flex-grow pr-2 custom-scrollbar">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2">
-                                <div 
-                                    v-for="(prompt, index) in personality.prompts_list" 
-                                    :key="index" 
-                                    @click="selectPrompt(prompt)"
-                                    class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 flex flex-col justify-between h-[220px] overflow-hidden group"
-                                >
+                        <div v-if="discussionArr.length < 2 && personality.prompts_list.length > 0" class="w-full rounded-lg m-2 shadow-lg hover:border-primary dark:hover:border-primary hover:border-solid hover:border-2 border-2 border-transparent even:bg-bg-light-discussion-odd dark:even:bg-bg-dark-discussion-odd flex flex-col overflow-hidden p-4 pb-2">
+
+                            <h2 class="text-xl font-semibold mb-4">Prompt examples</h2>
+                            <div class="overflow-x-auto flex-grow scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+                                <div class="flex flex-nowrap gap-4 p-2 min-w-full">
                                     <div 
-                                    :title="prompt" 
-                                    class="text-base text-gray-700 dark:text-gray-300 overflow-hidden relative h-full"
+                                        v-for="(prompt, index) in personality.prompts_list" 
+                                        :key="index" 
+                                        @click="handlePromptSelection(prompt)"
+                                        class="flex-shrink-0 w-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 flex flex-col justify-between h-[220px] overflow-hidden group"
                                     >
-                                    <div class="absolute inset-0 overflow-hidden">
-                                        {{ prompt }}
-                                    </div>
-                                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-gray-800 group-hover:opacity-0 transition-opacity duration-300"></div>
-                                    </div>
-                                    <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    Click to select
+                                        <div 
+                                            :title="prompt" 
+                                            class="text-base text-gray-700 dark:text-gray-300 overflow-hidden relative h-full"
+                                        >
+                                            <div class="absolute inset-0 overflow-hidden">
+                                                {{ prompt }}
+                                            </div>
+                                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-gray-800 group-hover:opacity-0 transition-opacity duration-300"></div>
+                                        </div>
+                                        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            Click to select
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Modal for placeholder inputs with live preview -->
+                            <div v-if="showPlaceholderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-2xl w-full">
+                                    <h3 class="text-lg font-semibold mb-4">Fill in the placeholders</h3>
+                                    
+                                    <!-- Live Preview Section -->
+                                    <div class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                        <h4 class="text-sm font-medium mb-2 text-gray-600 dark:text-gray-400">Live Preview:</h4>
+                                        <div class="text-base">{{ previewPrompt }}</div>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <div v-for="(placeholder, index) in placeholders" :key="index" class="flex flex-col">
+                                            <label :for="'placeholder-'+index" class="text-sm font-medium mb-1">
+                                                {{ placeholder.replace('[', '').replace(']', '') }}
+                                            </label>
+                                            <input 
+                                                :id="'placeholder-'+index"
+                                                v-model="placeholderValues[index]"
+                                                type="text"
+                                                class="border rounded-md p-2 dark:bg-gray-700 dark:border-gray-600"
+                                                :placeholder="placeholder"
+                                                @input="updatePreview"
+                                            >
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex justify-end space-x-4">
+                                        <button 
+                                            @click="cancelPlaceholders"
+                                            class="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            @click="applyPlaceholders"
+                                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                                        >
+                                            Apply
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -924,6 +1156,34 @@ export default {
     
     data() {
         return {
+            interestingFacts: [
+                "Saïph, the new version of LoLLMs, is named after a star in Orion's constellation (Kappa Orionis), representing bright guidance in AI!",
+                "Did you know? The first computer programmer was a woman - Ada Lovelace!",
+                "Large Language Models (LLMs) have evolved from having millions of parameters to hundreds of billions in just a few years.",
+                "LoLLMs (Lord of Large Language Multimodal Systems) is an open-source AI assistant platform created by ParisNeo.",
+                "Saïph (κ Orionis) is a blue-white supergiant star approximately 650 light-years away from Earth.",
+                "Neural networks were first proposed in 1943 by Warren McCulloch and Walter Pitts.",
+                "Modern LLMs like GPT-4 can understand and generate multiple languages, code, and even analyze images.",
+                "LoLLMs supports multiple AI models and can perform tasks like code interpretation, image analysis, and internet searches.",
+                "The term 'transformer' in AI, which powers most modern LLMs, was introduced in the 'Attention is All You Need' paper in 2017.",
+                "LoLLMs can generate various types of diagrams, including SVG, Graphviz, and Mermaid diagrams.",
+                "The Python programming language was named after Monty Python.",
+                "LoLLMs features a built-in code interpreter that can execute multiple programming languages.",
+                "Quantum computers can perform calculations in minutes that would take classical computers thousands of years.",
+                "LoLLMs supports multimodal interactions, allowing users to work with both text and images.",
+                "The name Saïph in Arabic (سيف) means 'sword', symbolizing cutting-edge AI technology.",
+                '<div class="flex items-center justify-center"><iframe width="560" height="315" src="https://www.youtube.com/embed/7pSXGj0dSzE?si=Ov0Y4F2mCRSB61xc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
+            ],
+            randomFact: "",            
+            showPlaceholderModal: false,
+            selectedPrompt: '',
+            placeholders: [],
+            placeholderValues: {},
+            previewPrompt: '',
+
+            bindingSearchQuery: '',
+            modelSearchQuery: '',
+            personalitySearchQuery: '',
             isSearching: false,
             isPersonalitiesMenuVisible: false,
             isModelsMenuVisible:false,
@@ -946,10 +1206,6 @@ export default {
             progress_visibility:false,
             progress_value:0,
             codeBlockStylesheet:'',
-            sunIcon: document.querySelector(".sun"),
-            moonIcon: document.querySelector(".moon"),
-            userTheme: localStorage.getItem("theme"),
-            systemTheme: window.matchMedia("prefers-color-scheme: dark").matches,
 
             lastMessageHtml:"",
             defaultMessageHtml: `
@@ -1094,6 +1350,15 @@ export default {
         }
     },
     methods: {        
+        updateRandomFact() {
+            // Get a new random fact different from the current one
+            let newFact;
+            do {
+                newFact = this.interestingFacts[Math.floor(Math.random() * this.interestingFacts.length)];
+            } while (newFact === this.randomFact && this.interestingFacts.length > 1);
+            
+            this.randomFact = newFact;
+        },        
         handleOnTalk(pers){
             console.log("talking")
             this.showPersonalities=false
@@ -1526,7 +1791,46 @@ export default {
                 case 3: return Math.random() * 100; // Bottom or left edge
             }
         },
-        selectPrompt(prompt){
+        handlePromptSelection(prompt) {
+            this.selectedPrompt = prompt;
+            this.previewPrompt = prompt; // Initialize preview
+            this.placeholders = this.extractPlaceholders(prompt);
+            
+            if (this.placeholders.length > 0) {
+                this.showPlaceholderModal = true;
+                this.placeholderValues = {};
+            } else {
+                this.setPromptInChatbox(prompt);
+            }
+        },
+
+        updatePreview() {
+            let updatedPrompt = this.selectedPrompt;
+            this.placeholders.forEach((placeholder, index) => {
+                const value = this.placeholderValues[index] || placeholder;
+                updatedPrompt = updatedPrompt.replace(placeholder, value);
+            });
+            this.previewPrompt = updatedPrompt;
+        },
+
+        cancelPlaceholders() {
+            this.showPlaceholderModal = false;
+            this.placeholders = [];
+            this.placeholderValues = {};
+            this.previewPrompt = '';
+        },
+
+        applyPlaceholders() {
+            this.setPromptInChatbox(this.previewPrompt);
+            this.showPlaceholderModal = false;
+        },
+
+        extractPlaceholders(prompt) {
+            const placeholderRegex = /\[(.*?)\]/g;
+            return [...prompt.matchAll(placeholderRegex)].map(match => match[0]);
+        },
+
+        setPromptInChatbox(prompt) {
             this.$refs.chatBox.message = prompt;
         },
         extractHtml() {
@@ -2076,19 +2380,24 @@ export default {
             }
         },
         async selectDiscussion(item) {
+            console.log("Selecting a discussion")
             if(this.isGenerating){
                 this.$store.state.toast.showToast("You are currently generating a text. Please wait for text generation to finish or stop it before trying to select another discussion", 4, false)
                 return;
             }
 
             if (item) {
+                console.log(`Selecting discussion: ${this.currentDiscussion}`)
                 // When discussion is selected it loads the discussion array
                 if (this.currentDiscussion===undefined) {
+                    console.log(`Selecting discussion: ${this.currentDiscussion.id}`)
                     this.currentDiscussion = item
 
                     this.setPageTitle(item)
 
                     localStorage.setItem('selected_discussion', this.currentDiscussion.id)
+                    const discussion_id = localStorage.getItem('selected_discussion')
+                    console.log(`Saved discussion to : ${discussion_id}`)
 
                     this.load_discussion(item.id, ()=>{
                         if (this.discussionArr.length > 1) {
@@ -2110,6 +2419,7 @@ export default {
                         this.setPageTitle(item)
 
                         localStorage.setItem('selected_discussion', this.currentDiscussion.id)
+                        console.log(`Saved discussion to : ${this.currentDiscussion.id}`)
 
                         this.load_discussion(item.id, ()=>{
                             if (this.discussionArr.length > 1) {
@@ -3113,6 +3423,7 @@ export default {
         },
     },
     async created() {
+        this.randomFact = this.interestingFacts[Math.floor(Math.random() * this.interestingFacts.length)];
         console.log("Created discussions view")
         const response = await axios.get('/get_versionID');
         const serverVersionId = response.data.versionId;
@@ -3122,6 +3433,7 @@ export default {
             if (this.currentDiscussion!=null){
                 this.setPageTitle(item)
                 localStorage.setItem('selected_discussion', this.currentDiscussion.id)
+                console.log(`Saved discussion to : ${this.currentDiscussion.id}`)
                 this.load_discussion(item.id, ()=>{
                     if (this.discussionArr.length > 1) {
                         if (this.currentDiscussion.title === '' || this.currentDiscussion.title === null) {
@@ -3305,43 +3617,13 @@ export default {
         this.$store.state.yesNoDialog = this.$refs.yesNoDialog
         this.$store.state.personality_editor = this.$refs.personality_editor
 
-        
-        this.sunIcon = document.querySelector(".sun");
-        this.moonIcon = document.querySelector(".moon");
-        this.userTheme = localStorage.getItem("theme");
-        this.systemTheme = window.matchMedia("prefers-color-scheme: dark").matches;
-        this.themeCheck()
-
-        nextTick(() => {
-            feather.replace()
-        })
 
         window.addEventListener('resize', this.adjustMenuPosition);
-
-        // let serverAddress = "http://localhost:9600/";
-        // try {
-        //     const response = await fetch('/get_server_address'); // Replace with the actual endpoint on your Flask server
-        //     serverAddress = await response.text();
-        //     if(serverAddress.includes('<')){
-        //         console.log(`Server address not found`)
-        //         serverAddress = "http://localhost:9600/"//process.env.VITE_LOLLMS_API
-                
-        //     }
-        //     console.log(`Server address: ${serverAddress}`)
-        // } catch (error) {
-        //     console.error('Error fetching server address:', error);
-            // Handle error if necessary
-        //     serverAddress = "http://localhost:9600/"
-        // }
-        // this.host = `${serverAddress}`; // Construct the full server address dynamically
-        // axios.defaults.baseURL = serverAddress
-        //console.log('chatbox mnt',this.$refs)
+        
         socket.on('refresh_files',()=>{
             this.recoverFiles()
         })
-        this.$nextTick(() => {
-            feather.replace();
-        });
+
     },
     async activated() {
         //console.log('settings changed acc', this.$store.state.settingsChanged)
@@ -3456,7 +3738,21 @@ export default {
         
     },
     computed: { 
-
+        filteredBindings() {
+            return this.installedBindings.filter(binding => 
+            binding.name.toLowerCase().includes(this.bindingSearchQuery.toLowerCase())
+            )
+        },        
+        filteredModels() {
+            return this.installedModels.filter(model => 
+            model.name.toLowerCase().includes(this.modelSearchQuery.toLowerCase())
+            )
+        },
+        filteredPersonalities() {
+            return this.mountedPersonalities.filter(personality => 
+            personality.name.toLowerCase().includes(this.personalitySearchQuery.toLowerCase())
+            )
+        },
         currentModel() {
             return this.$store.state.currentModel || {};
         },
