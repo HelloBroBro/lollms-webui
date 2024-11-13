@@ -1292,7 +1292,7 @@ export default {
                 "The system's multimodel capabilities allow it to analyze medical images, architectural blueprints, and technical diagrams.",
                 "LoLLMs includes a unique feature called 'personality system' that allows it to adapt its communication style and expertise.",
                 "Did you know? LoLLMs can process and generate music notation using ABC notation or LilyPond formats.",
-                "LoLLMs supports over 40 different AI models, making it one of the most versatile open-source AI platforms.",
+                "LoLLMs supports over 2000 different AI models, making it one of the most versatile open-source AI platforms.",
                 "The system can generate realistic 3D scenes descriptions that can be rendered using tools like Blender.",
                 "LoLLMs features a unique 'model fusion' capability, combining strengths of different AI models for better results.",
                 "The platform includes specialized modules for scientific computing, allowing it to solve complex mathematical problems.",
@@ -1707,7 +1707,7 @@ export default {
 
                             // open form
 
-                            this.$refs.universalForm.showForm(res.data, "Binding settings ", "Save changes", "Cancel").then(res => {
+                            this.$store.state.universalForm.showForm(res.data, "Binding settings ", "Save changes", "Cancel").then(res => {
                                 // send new data
                                 try {
                                     axios.post('/set_active_binding_settings',
