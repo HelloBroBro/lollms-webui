@@ -16,26 +16,26 @@
 
             <div class="flex flex-col items-center text-center max-w-4xl w-full px-4 relative z-10">
                 <div class="mb-8 w-full">
-                    <div class="text-5xl md:text-6xl font-bold text-amber-500 mb-2 hover:scale-105 transition-transform lollms-title-style">
+                    <div class="text-5xl md:text-6xl font-bold mb-2 hover:scale-105 transition-transform lollms-title-style">
                         {{$store.state.theme_vars.lollms_title}}
                     </div>
 
 
-                    <p class="text-2xl text-gray-600 dark:text-gray-300 italic">
+                    <p class="text-2xl italic">
                         One tool to rule them all
                     </p>
-                    <p class="text-xl text-gray-500 dark:text-gray-400 mb-6">
+                    <p class="text-xl mb-6">
                         by ParisNeo
                     </p>
-                    <p class="bottom-0 text-2xl text-gray-600 dark:text-gray-300 italic">
+                    <p class="bottom-0 text-2xl italic">
                         {{ version_info }}
                     </p>
 
                     <!-- Clickable interesting fact card -->
                     <div class="interesting-facts transition-transform duration-300 cursor-pointer"
                         @click="updateRandomFact">
-                        <p class="text-lg text-gray-700 dark:text-gray-300">
-                            <span class="font-semibold text-blue-600 dark:text-blue-400">🤔 Fun Fact: </span>
+                        <p class="text-lg ">
+                            <span class="font-semibold">🤔 Fun Fact: </span>
                             <span v-html="randomFact"></span>
                         </p>
                     </div>
@@ -56,10 +56,10 @@
                 
                 <div class="w-full max-w-2xl">
                     <div role="status" class="w-full">
-                        <p class="text-xl text-gray-700 dark:text-gray-300">
+                        <p class="text-xl">
                             {{ loading_infos }}...
                         </p>
-                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                        <p class="text-2xl font-bold mt-2">
                             {{ Math.round(loading_progress) }}%
                         </p>
                     </div>
@@ -1261,6 +1261,7 @@ export default {
     data() {
         return {
             interestingFacts: [
+                "ParisNeo, the creator of LoLLMs, originally built his high-performance PC to play Cyberpunk 2077. However, his passion for AI took an unexpected turn, leading him to develop LoLLMs instead. Ironically, he never found the time to actually play the game that inspired his powerful setup!",
                 "Saïph, the new version of LoLLMs, is named after a star in Orion's constellation (Kappa Orionis), representing bright guidance in AI!",
                 "Did you know? The first computer programmer was a woman - Ada Lovelace!",
                 "Large Language Models (LLMs) have evolved from having millions of parameters to hundreds of billions in just a few years.",

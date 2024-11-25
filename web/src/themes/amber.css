@@ -391,7 +391,7 @@ button:hover {
 }
 
 .animated-progressbar-bg {
-  @apply w-full h-24 relative overflow-hidden bg-gradient-to-r from-amber-950 to-amber-900 dark:from-black dark:to-amber-950 rounded-sm shadow-[0_0_15px_rgba(245,158,11,0.2)]
+  @apply w-full h-10 relative overflow-hidden bg-gradient-to-r from-amber-950 to-amber-900 dark:from-black dark:to-amber-950 rounded-sm shadow-[0_0_15px_rgba(245,158,11,0.2)]
 }
 
 .animated-progressbar-fg {
@@ -408,16 +408,130 @@ button:hover {
   background: linear-gradient(45deg, #d97706, #fbbf24);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  color: #f59e0b;
 }
 
-
 .chat-bar {
-  @apply relative text-amber-900 dark:text-amber-100 grow flex cursor-pointer select-none items-center gap-2 bg-amber-50 dark:bg-amber-800 p-1 shadow-sm hover:shadow-none dark:border-amber-900;
+  @apply relative text-amber-300 dark:text-amber-100 grow flex cursor-pointer select-none items-center gap-2 bg-amber-900 dark:bg-black p-1 shadow-sm hover:shadow-none dark:border-amber-700;
   height: 50px;
   transition: all 0.3s ease;
 }
 
 .chat-bar:hover {
-  box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.1), 0 2px 4px -1px rgba(217, 119, 6, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(255, 191, 0, 0.1), 0 2px 4px -1px rgba(255, 191, 0, 0.06);
+}
+
+.chat-bar-button{
+  @apply text-amber-200 dark:text-amber-100 p-2 rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500
+}
+
+.chat-bar-button:hover{
+  @apply bg-amber-200 dark:bg-amber-700
+}
+
+.chat-bar-button:active{
+  @apply bg-amber-300 dark:bg-amber-600
+}
+
+.nav-button{
+  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out hover:bg-amber-100 hover:text-amber-700 dark:hover:bg-amber-700 text-amber-200 dark:text-amber-100
+}
+
+.nav-button-active{
+  @apply bg-amber-500 text-gray-100 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700
+}
+
+.svg-button{
+  @apply text-amber-600 dark:text-amber-300 p-2 rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500
+}
+
+.svg-button:hover{
+  @apply bg-amber-200 dark:bg-amber-700
+}
+
+.svg-button:active{
+  @apply bg-amber-300 dark:bg-amber-600
+}
+
+.nav-button{
+  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out hover:bg-amber-100 dark:hover:bg-amber-700 text-amber-700 dark:text-amber-300
+}
+
+.nav-button-active{
+  @apply bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700
+}
+
+.btn-on{
+  @apply text-amber-500 dark:text-amber-400
+}
+
+.btn-off{
+  @apply text-red-500 dark:text-red-400
+}
+
+.interesting-facts{
+  @apply mt-6 mb-6 p-4 bg-amber-50/80 dark:bg-amber-900/80 rounded-lg shadow-lg transform hover:scale-105 
+}
+
+.toolbar-button {
+  @apply bg-transparent border-none cursor-pointer p-2 transition-colors duration-300;
+}
+  
+.toolbar-button:hover {
+  @apply text-amber-500;
+}
+
+.context-menu {
+  @apply absolute bg-opacity-90 bg-amber-900 border border-amber-500 shadow-lg shadow-amber-500/50 rounded-none py-2 min-w-[150px] z-[1000] font-mono;
+  
+  @apply dark:bg-opacity-90 dark:bg-amber-950 dark:border-amber-400 dark:shadow-amber-400/50;
+}
+
+.context-menu::before {
+  @apply content-[''] absolute inset-0 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent bg-[length:100%_1000px]  opacity-30 -z-10;
+}
+
+.context-menu-item {
+  @apply px-4 py-2 text-sm text-amber-500 cursor-pointer transition-all duration-300 ease-in-out shadow-amber-500/70;
+  
+  @apply hover:bg-amber-500/20 hover:scale-105;
+  
+  @apply dark:text-amber-400 dark:hover:bg-amber-400/20;
+}
+
+.context-menu-separator {
+  @apply h-px bg-amber-500 my-1 shadow-amber-500;
+  
+  @apply dark:bg-amber-400 dark:shadow-amber-400;
+}
+
+.context-menu-item-disabled {
+  @apply text-amber-800 cursor-not-allowed shadow-none;
+  
+  @apply dark:text-amber-700;
+}
+
+.context-menu-item-icon {
+  @apply mr-2 text-amber-500;
+  
+  @apply dark:text-amber-400;
+}
+
+.context-menu-item::after {
+  @apply content-[''] absolute left-0 bottom-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent scale-x-0 origin-center transition-transform duration-300 ease-in-out;
+  
+  @apply dark:via-amber-400;
+}
+
+.context-menu-item:hover::after {
+  @apply scale-x-100;
+}
+
+@keyframes matrix-rain {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 1000px;
+  }
 }

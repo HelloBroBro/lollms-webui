@@ -13,74 +13,96 @@
           <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
             {{$store.state.theme_vars.lollms_title}}
           </h1>
-          <p class="text-2xl text-gray-600 dark:text-gray-300 italic mt-2">
+          <p class="text-2xl italic mt-2">
             Lord of Large Language And Multimodal Systems
           </p>
         </div>
       </div>
       
       <div class="space-y-8 animate-fade-in-up">
-        <h2 class="text-4xl font-semibold text-gray-800 dark:text-gray-200">
+        <h2 class="text-4xl font-semibold">
           {{$store.state.theme_vars.lollms_welcome_short_message}}
         </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        <p class="text-xl max-w-3xl mx-auto">
           {{$store.state.theme_vars.lollms_welcome_message}}
         </p>
       </div>
 
       <!-- New section for latest news -->
-      <div id="newsContainer" class="mt-12 p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md animate-fade-in-up overflow-y-scroll" style="display: none;">
-        <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Latest LoLLMS News</h3>
-        <p id="newsContent" class="text-gray-600 dark:text-gray-300"></p>
+      <div v-if="latestNews" class="mt-12 p-6 rounded-lg shadow-md animate-fade-in-up overflow-y-scroll scrollbar-thin">
+        <h3>Latest LoLLMS News</h3>
+        <p v-html="latestNews"></p>
       </div>
-      <div id="errorContainer" class="mt-6 text-red-500 dark:text-red-400" style="display: none;"></div>
+      <div v-if="error" class="mt-6 text-red-500">{{ error }}</div>
+    </div>
+
+    <!-- Floating button for latest ParisNeo video -->
+    <div v-if="showVideoButton" class="floating-button-container">
+      <a :href="videoUrl" target="_blank" class="floating-button" @click="handleClick">
+        <span class="tooltip">New ParisNeo Video!</span>
+        <img src="/play_video.png" alt="New Video" class="w-full h-full object-cover">
+      </a>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
 import storeLogo from '@/assets/logo.png'
 import axios from 'axios'
 
 export default {
   name: 'WelcomeComponent',
-  setup() {
-    const store = useStore()
-    const latestNews = ref('')
-    const error = ref('')
-
-    const logoSrc = computed(() => {
-      if (!store.state.config) return storeLogo
-      return store.state.config.app_custom_logo 
-        ? `/user_infos/${store.state.config.app_custom_logo}` 
+  data() {
+    return {
+      videoUrl: "",
+      latestNews: "",
+      error: "",
+      showVideoButton: false,
+      lastVideoUrl: ""
+    }
+  },
+  computed: {
+    logoSrc() {
+      if (!this.$store.state.config) return storeLogo
+      return this.$store.state.config.app_custom_logo 
+        ? `/user_infos/${this.$store.state.config.app_custom_logo}` 
         : storeLogo
-    })
-
-    const fetchLatestNews = async () => {
+    }
+  },
+  methods: {
+    async fetchLatestNews() {
       try {
         const response = await axios.get('/get_news')
-        latestNews.value = response.data
-        document.getElementById('newsContent').innerHTML = latestNews.value;
-        document.getElementById('newsContainer').style.display = 'block';
+        this.latestNews = response.data
       } catch (err) {
         console.error('Failed to fetch latest news:', err)
-        error.value = 'Unable to fetch the latest news. Please try again later.'
-        document.getElementById('errorContainer').textContent = err;
-        document.getElementById('errorContainer').style.display = 'block';
+        this.error = 'Unable to fetch the latest news. Please try again later.'
+      }
+    },
+    async fetchVideoUrl() {
+      try {
+        const response = await axios.get('/get_last_video_url')
+        this.videoUrl = response.data
+        this.checkVideoUpdate()
+      } catch (err) {
+        console.error('Failed to fetch video URL:', err)
+        this.error = 'Unable to fetch the latest video URL. Please try again later.'
+      }
+    },
+    handleClick() {
+      localStorage.setItem('lastVideoUrl', this.videoUrl)
+      this.showVideoButton = false
+    },
+    checkVideoUpdate() {
+      const storedVideoUrl = localStorage.getItem('lastVideoUrl')
+      if (this.videoUrl !== storedVideoUrl) {
+        this.showVideoButton = true
       }
     }
-
-    onMounted(() => {
-      fetchLatestNews()
-    })
-
-    return {
-      logoSrc,
-      latestNews,
-      error
-    }
+  },
+  mounted() {
+    this.fetchLatestNews()
+    this.fetchVideoUrl()
   }
 }
 </script>
@@ -116,5 +138,78 @@ export default {
 
 .animate-fade-in-up {
   animation: fade-in-up 1.5s ease-out;
+}
+
+.floating-button-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+}
+
+.floating-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: rgba(255, 69, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 30px rgba(255, 69, 0, 0.8);
+  animation: pulse 1.5s infinite, glow 2s infinite, wobble 3s infinite;
+  overflow: hidden;
+  z-index: 9999;
+  transition: all 0.3s ease;
+}
+
+.floating-button:hover {
+  transform: scale(1.2) rotate(5deg);
+  background-color: rgba(255, 69, 0, 1);
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+}
+
+.floating-button:hover .tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 30px rgba(255, 69, 0, 0.8); }
+  50% { box-shadow: 0 0 60px rgba(255, 69, 0, 1), 0 0 90px rgba(255, 69, 0, 0.6); }
+  100% { box-shadow: 0 0 30px rgba(255, 69, 0, 0.8); }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.hidden {
+  display: none;
 }
 </style>

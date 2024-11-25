@@ -50,6 +50,28 @@ async def get_lollms_version():
     infos = base_path/"news"/"current.html"
     return infos.read_text(encoding="utf8")
 
+@router.get("/get_last_video_url")
+async def get_last_video_url():
+    """Get the URL of the last video."""
+    # This is a static URL for demonstration purposes
+    base_path = Path(__file__).parent
+    infos = base_path/"news"/"latest_video.txt"
+    return infos.read_text(encoding="utf8")
+
+@router.get("/get_themes")
+async def get_themes():
+    """Get the list of available themes."""
+    base_path = Path(__file__).parent.parent
+    themes_path = base_path / "web" / "dist" / "themes"
+    
+    # Get all .css files in the themes directory
+    theme_files = list(themes_path.glob('*.css'))
+    
+    # Remove the .css extension from each file name
+    themes = [theme_file.stem for theme_file in theme_files]
+    
+    return themes
+
 @router.get("/get_lollms_webui_version")
 async def get_lollms_webui_version():
    """Get the version of the LoLLMs Web UI application."""
